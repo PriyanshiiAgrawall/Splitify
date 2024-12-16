@@ -3,9 +3,10 @@ dotenv.config();
 import logger from "./utils/logger.js";
 import morgan from "morgan";
 import express from "express";
-
+//ES Module does not assume .js while importing like commonjs 
 import { dbConnect } from "./db/db.js";
-
+import userRoutes from "./routes/userRouter.js";
+import groupRoutes from "./routes/groupRouter.js"
 const app = express();
 
 app.use(express.json());
@@ -44,3 +45,11 @@ server();
 app.get('/', (req, res) => {
     res.send("hello world");
 })
+app.use((req, res, next) => {
+    console.log(`Incoming request: ${req.method} ${req.url}`);
+    next();
+});
+app.use('/api/users', userRoutes);
+
+
+app.use('/api/groups', groupRoutes);

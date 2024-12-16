@@ -19,4 +19,6 @@ const GroupSchema = new mongoose.Schema({
     ] //this split will tell who owes how much amount as a sum total of a group
 })
 
-module.exports = mongoose.model('Group', GroupSchema);
+export default mongoose.model('Group', GroupSchema)
+
+//module.exports is commonjs syntax

@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import logger from "../utils/logger.js";
 import User from "../models/User.js";
-import generateToken from "../middlewares/apiAuthentication.js"
+import { generateToken } from "../middlewares/apiAuthentication.js"
 
 //zod is defaulty required if need to make some field optional just put optional there
 const userRegistrationInput = z.object({
@@ -67,7 +67,7 @@ const userLoginInput = z.object({
     emailId: z.string().email("Invalid email format"),
     password: z.string().min(8, "Password must be at least 8 characters"),
 });
-exports.userLogin = async (req, res) => {
+export const userLogin = async (req, res) => {
     try {
         //zod validation for inputted fields
         const validatedData = userLoginInput.parse(req.body);
@@ -97,6 +97,7 @@ exports.userLogin = async (req, res) => {
         }
         //password matches now generate token
         const payload = {
+            id: user._id,
             emailId: emailId,
         }
         const token = generateToken(payload);
@@ -144,7 +145,7 @@ const viewUserSchema = z.object({
         .email("Invalid email format") // Validates email format
         .nonempty("Email ID is required"), // Ensures it is not empty
 });
-exports.viewUser = async (req, res) => {
+export const viewUser = async (req, res) => {
     try {
 
         // Validate req.body using Zod schema
@@ -185,7 +186,7 @@ Returns: all user Email ID who are registered in the app
 //Select group members by their email IDs.
 //Send invitations to join the group.
 
-const fetchAllRegisteredEmails = (req, res) => {
+export const fetchAllRegisteredEmails = async (req, res) => {
     try {
         // this query gives array of email objects like 
         //     [
@@ -193,18 +194,18 @@ const fetchAllRegisteredEmails = (req, res) => {
         //   { "emailId": "user2@example.com" }
         // ] 
         //as we explicidely telling mongodb to give us eamil and id which is automatically included we are excluding it manually
-        const fetchedEmails = User.find({}, {
+        const fetchedEmails = await User.find({}, {
             emailId: 1,
             _id: 0
         });
 
-        if (!fetchedEmails) {
+        if (!fetchedEmails || fetchedEmails.length === 0) {
             return res.status(400).json({
-                message: "User Emails Not Found"
+                message: "No registered user emails found"
             })
         }
         let emailList = [];
-        for (let email in fetchedEmails) {
+        for (let email of fetchedEmails) {
             emailList.push(email.emailId);
         }
         //now we'll have ["user1@example.com", "user2@example.com"]

@@ -14,7 +14,7 @@ const passwordValidation = z
     .min(8, "Password must be at least 8 characters long");
 
 // Schema for currency validation
-const currencyValidation = z.enum(["INR", "USD", "EUR"]);
+const currencyValidation = z.enum(["INR", "USD", "EUR", "YEN", "YUAN"]);
 
 
 // const userSchema = z.object({

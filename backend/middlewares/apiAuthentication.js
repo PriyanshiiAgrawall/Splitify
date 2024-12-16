@@ -1,13 +1,13 @@
 import jwt from "jsonwebtoken";
 import logger from "../utils/logger.js";
 
-
-exports.generateToken = (payload) => {
+//exports. is commonjs syntax
+export const generateToken = (payload) => {
     return jwt.sign(payload, process.env.JWT_SECRET, {
         expiresIn: "3d",
     })
 }
-exports.validateToken = (req, res, next) => {
+export const validateToken = (req, res, next) => {
     // Skip authentication in development mode
     // if (process.env.DISABLE_API_AUTH === "true") {
     //     return next(); // Let the request go through 
@@ -38,7 +38,7 @@ exports.validateToken = (req, res, next) => {
 /*
 Validation function to check if the user is the same as the token user
 */
-exports.validateUser = (inputtedEmail, emailWhichWePutInResponse) => {
+export const validateUser = (inputtedEmail, emailWhichWePutInResponse) => {
     // Check if API authentication is enabled and the user doesn't match the token
     // if (process.env.DISABLE_API_AUTH !== "true" && toBeCheckedEmail !== tokenPayloadEmail) {
     //     const err = new Error("Access Denied");
@@ -58,3 +58,5 @@ exports.validateUser = (inputtedEmail, emailWhichWePutInResponse) => {
 
 
 }
+//cant use export default with inline functions 
+

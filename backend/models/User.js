@@ -8,4 +8,6 @@ const UserSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 //1st argument is what name should the model be called and 2nd is what we defined in this file 
-module.exports = mongoose.model('User', UserSchema)
+export default mongoose.model('User', UserSchema)
+
+//module.exports is commonjs syntax
