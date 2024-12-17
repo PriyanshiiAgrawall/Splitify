@@ -2,6 +2,7 @@
 import { z } from "zod";
 import Group from "../models/Group.js"
 import User from "../models/User.js"
+import Settlement from "../models/Settlement.js"
 /*
 Create Group Function - This function creates new groups
 Accepts: Group Name
@@ -253,7 +254,82 @@ Make Settlement Function
 This function is used to make the settlements in the gorup 
 
 */
+const settlementInputSchema = z.object({
+    groupId: z.string().nonempty("Group ID is required"),
+    settleTo: z.string().nonempty("SettleTo (User ID) is required"),
+    settleFrom: z.string().nonempty("SettleFrom (User ID) is required"),
+    settleAmount: z.number().positive("Settlement amount must be greater than 0"),
+    settleDate: z.date().optional(), // as `Date.now` in the model is present
+});
 
+export const makeSettlement = async (req, res) => {
+    try {
+        // Validate request body with Zod
+        const validatedData = settlementInputSchema.parse(req.body);
+
+        // Find the group by groupId
+        const group = await Group.findById(validatedData.groupId);
+        if (!group) {
+            return res.status(400).json({ message: "Invalid Group ID" });
+        }
+        //check if settled to settled from are group members
+        const isSettleToGroupMember = group.groupMembers.some(
+            (member) => member.toString() === validatedData.settleTo
+        );
+        const isSettleFromGroupMember = group.groupMembers.some(
+            (member) => member.toString() === validatedData.settleFrom
+        );
+
+        //objectid(not string in mongo) and id string send in request is seen as different types thats why toString() is used
+
+
+        if (!isSettleToGroupMember || !isSettleFromGroupMember) {
+            return res.status(400).json({
+                message: "Both settleTo and settleFrom must be members of the group",
+            });
+        }
+
+        // Check if the split array exists
+        if (!group.split || group.split.length === 0) {
+            return res.status(400).json({ message: "Group has no split data to update" });
+        }
+
+        // Update the split data for settleFrom and settleTo
+        const splitArray = group.split.map((split) => {
+            if (split.member.toString() === validatedData.settleFrom) {
+                split.amount += validatedData.settleAmount;
+                split.status = split.amount >= 0 ? "owed" : "owes";
+            }
+            if (split.member.toString() === validatedData.settleTo) {
+                split.amount -= validatedData.settleAmount;
+                split.status = split.amount >= 0 ? "owed" : "owes";
+            }
+            return split;
+        });
+
+        // Update the group's split in the database
+        group.split = splitArray;
+        await group.save();
+
+        // Create a new settlement entry in the database
+        const newSettlement = await Settlement.create(validatedData);
+
+        // Respond with success
+        res.status(200).json({
+            message: "Settlement successful!",
+            status: "Success",
+            group: group._id,
+            settlement: newSettlement,
+        });
+    } catch (err) {
+        logger.error(
+            `URL: ${req.originalUrl} | Status: ${err.status || 500} | Message: ${err.message}`
+        );
+        res.status(err.status || 500).json({
+            message: err.message || "Failed to make settlement",
+        });
+    }
+};
 
 
 

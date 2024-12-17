@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import logger from "../utils/logger.js";
 import User from "../models/User.js";
-import { generateToken } from "../middlewares/apiAuthentication.js"
+import { generateToken, validateToken, validateUser } from "../middlewares/apiAuthentication.js"
 
 //zod is defaulty required if need to make some field optional just put optional there
 const userRegistrationInput = z.object({
@@ -152,7 +152,7 @@ export const viewUser = async (req, res) => {
         const { emailId } = viewUserSchema.parse(req.body);
         //verifyToken middleware puts decoded token in request named as user now this user has email(payload)
         //verifying wmail of user who's data is wanted is same as inputted email
-        apiAuth.validateUser(req.user.emailId, req.body.emailId)
+        validateUser(req.user.emailId, req.body.emailId)
         const user = await User.findOne({
             emailId: req.body.emailId
         }, {
