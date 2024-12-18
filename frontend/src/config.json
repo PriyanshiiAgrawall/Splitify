@@ -1,0 +1,6 @@
+{
+    "DASHBOARD_URL": "/dashboard/app",
+    "LOGIN_URL": "/",
+    "REGISTER_URL": "/register",
+    "USER_GROUPS_URL": "/dashboard/groups"
+}

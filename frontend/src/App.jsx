@@ -1,6 +1,10 @@
 import ThemeProvider from './components/theme';
 import './App.css'
-import LoginForm from './components/login/LoginForm'
+
+import Login from './components/login';
+
+import Register from './components/register';
+
 
 function App() {
 
@@ -8,7 +12,8 @@ function App() {
   return (
     <>
       <ThemeProvider>
-        <LoginForm />
+        {/* <Login /> */}
+        <Register />
       </ThemeProvider>
 
     </>

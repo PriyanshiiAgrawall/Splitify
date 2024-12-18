@@ -7,10 +7,14 @@ import express from "express";
 import { dbConnect } from "./db/db.js";
 import userRoutes from "./routes/userRouter.js";
 import groupRoutes from "./routes/groupRouter.js"
+import cors from 'cors';
 const app = express();
 
 app.use(express.json());
-
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true // Allows cookies and headers
+}));
 
 const morganFormat = ":method :url :status :response-time ms";
 
@@ -49,7 +53,7 @@ app.use((req, res, next) => {
     console.log(`Incoming request: ${req.method} ${req.url}`);
     next();
 });
-app.use('/api/users', userRoutes);
+app.use('/api/users/v1', userRoutes);
 
 
 app.use('/api/groups', groupRoutes);

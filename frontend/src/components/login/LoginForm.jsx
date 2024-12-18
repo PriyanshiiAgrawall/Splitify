@@ -5,6 +5,7 @@ import { LoadingButton } from '@mui/lab';
 import useResponsive from "../theme/hooks/useResponsive"
 import Iconify from '../Iconify';
 import { useState } from 'react';
+import { login } from '../../services/authentication';
 
 
 export default function LoginForm() {
@@ -20,8 +21,10 @@ export default function LoginForm() {
         formState: { errors, isSubmitting },
     } = useForm();
 
-    function onSubmit(data) {
+    async function onSubmit(data) {
         console.log("Submitting the form", data)
+        //call to login service 
+        await login(data, setAlertMessage, setShowAlert);
     }
 
     //onSubmit function ko data provide handleSbmit karega 
@@ -41,10 +44,10 @@ export default function LoginForm() {
                     <TextField
 
                         type="email"
-                        placeholder="Email Address your email"
-                        error={!!errors.email}
-                        helperText={errors.email?.message}
-                        {...register("email", {
+                        placeholder="Email Address"
+                        error={!!errors.emailId}
+                        helperText={errors.emailId?.message}
+                        {...register("emailId", {
                             required: "Email field can't be empty",
                             pattern: {
                                 value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
