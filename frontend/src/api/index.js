@@ -27,3 +27,7 @@ export const loginIn = async (formData) => {
 }
 
 export const register = (formData) => API.post('/api/users/v1/register', formData)
+
+
+export const getUserExpense = (formData) => API.post('/api/expense/v1/user', formData, puttingTokenInHeader)
+

@@ -1,5 +1,6 @@
-import z from Zod;
-
+import { z } from 'zod';
+import Group from "../models/Group.js";
+import logger from './logger.js';
 // Schema for non-null values
 const notNull = z.string().nonempty("Please input the required field");
 
@@ -23,10 +24,37 @@ const currencyValidation = z.enum(["INR", "USD", "EUR", "YEN", "YUAN"]);
 //   currency: currencyValidation.optional(),
 // });
 
-module.exports = {
-    notNull,
-    emailValidation,
-    passwordValidation,
-    currencyValidation,
-    userSchema,
-};
+export const userBelongToGroupOrNot = async (userId, groupId) => {
+    //fetching groupmembers from the db for a particular id
+    const groupMembersObject = await Group.findOne({
+        _id: groupId
+    }, {
+        groupMembers: 1,
+        _id: 0
+    })
+    console.log(groupMembersObject);
+    //this query returns an object 
+    // {
+    // groupMembersObject: [member1,member2,member3]
+    //}
+
+    if (!groupMembersObject) {
+        throw new Error(`Group with ID ${groupId} not found`);
+    }
+    //extracting only array
+    const groupMembersArray = groupMembersObject.groupMembers;
+    if (groupMembersArray.includes(userId))
+        return true
+    else {
+        logger.warn([`Group User Valdation fail : Group ID : [${groupId}] | user : [${userId}]`])
+        return false
+    }
+}
+
+// module.exports = {
+//     notNull,
+//     emailValidation,
+//     passwordValidation,
+//     currencyValidation,
+//     userSchema,
+// };

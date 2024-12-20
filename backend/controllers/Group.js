@@ -1,8 +1,10 @@
 // import { minimumTransactions } from "../utils/split";
+// import Decimal from 'decimal.js';
 import { z } from "zod";
 import Group from "../models/Group.js"
 import User from "../models/User.js"
 import Settlement from "../models/Settlement.js"
+import logger from "../utils/logger.js";
 /*
 Create Group Function - This function creates new groups
 Accepts: Group Name
@@ -24,7 +26,7 @@ const createGroupInput = z.object({
         .min(1, "Group must have at least one member"),
 
 })
-
+//TESTED
 export const createGroup = async (req, res) => {
     try {
         //fetch data from req.body 
@@ -87,7 +89,7 @@ export const createGroup = async (req, res) => {
     }
 }
 
-
+//TESTED
 
 /*
 View Group function 
@@ -147,7 +149,7 @@ This function is basically to display the list of group that a user belongs
 Accepts: user email ID
 Validation: email Id present in DB
 */
-
+//TESTED
 export const findUserGroups = async (req, res) => {
     try {
         const { emailId } = req.body;
@@ -209,6 +211,7 @@ Delete Group Function
 This function is used to delete the existing group
 Accepts: Group Id
 Validation: exisitng group Id
+ //TESTED
 */
 export const deleteGroup = async (req, res) => {
     try {
@@ -342,9 +345,63 @@ Accepts gorupId
         exp owner 
         exp members 
 it will add split to the owner and deduct from the remaining members 
-This function is not a direct API hit - it is called by add expense function 
+This function is not a direct API hit - it is called by add expense function so it is a utility function and hence it should not return http response
 */
+//TESTED
+export const addSplit = async (groupId, expenseAmount, expenseOwner, expenseMembers, originalUrl = '') => {
+    try {
+        const group = await Group.findOne({
+            _id: groupId
+        })
+        if (!group) {
+            //this throw will stop further execution of code
+            throw new Error("Group doesn't exist");
+        }
+        //adding expense to the total expenditure of group
+        group.groupTotalExpenditure += expenseAmount
+        //finding the object which belongs to the owner
+        const ownerSplit = group.split.find((entry) => entry.member.toString() === expenseOwner.toString());
+        //if owner object not found
+        if (!ownerSplit) {
+            throw new Error("Owner is not a member of the group");
+        }
+        //if owner object found then add amount to it's balance 
+        ownerSplit.amount += expenseAmount;
 
+        let expensePerPerson = expenseAmount / expenseMembers.length
+        expensePerPerson = Math.round((expensePerPerson + Number.EPSILON) * 100) / 100;
+
+        //update each members amount
+        for (const user of expenseMembers) {
+            // Find the specific split object for the user
+            const userSplit = group.split.find((entry) => entry.member.toString() === user.toString());
+            if (!userSplit) {
+                throw new Error(`User ${user} is not part of the group`);
+            }
+            // Deduct the per-person expense from the user's amount
+            userSplit.amount -= expensePerPerson;
+        }
+
+        //Nullifying split
+        let bal = 0
+        for (const entry of group.split) {
+            bal += entry.amount; // Add each member's amount to the balance
+        }
+
+        //Updating back the split values to the group
+        await Group.updateOne({
+            _id: groupId
+        }, group)
+
+        return { success: true };
+    }
+    catch (err) {
+        logger.error(
+            `URL: ${originalUrl} | Status: ${err.status || 500} | Message: ${err.message}`
+        );
+        return { success: false, message: err.message };
+    }
+}
 
 
 /*
@@ -353,7 +410,60 @@ This function is used to clear the split caused due to a prev expense
 This is used guring edit expense or delete expense operation 
 Works in the reverse of addSplit function 
 */
+export const clearSplit = async (groupId, expenseAmount, expenseOwner, expenseMembers, originalUrl = '') => {
+    try {
+        const group = await Group.findOne({
+            _id: groupId
+        })
+        if (!group) {
+            //this throw will stop further execution of code
+            throw new Error("Group doesn't exist");
+        }
+        //adding expense to the total expenditure of group
+        group.groupTotalExpenditure -= expenseAmount
+        //finding the object which belongs to the owner
+        const ownerSplit = group.split.find((entry) => entry.member.toString() === expenseOwner.toString());
+        //if owner object not found
+        if (!ownerSplit) {
+            throw new Error("Owner is not a member of the group");
+        }
+        //if owner object found then add amount to it's balance 
+        ownerSplit.amount -= expenseAmount;
 
+        let expensePerPerson = expenseAmount / expenseMembers.length
+        expensePerPerson = Math.round((expensePerPerson + Number.EPSILON) * 100) / 100;
+
+        //update each members amount
+        for (const user of expenseMembers) {
+            // Find the specific split object for the user
+            const userSplit = group.split.find((entry) => entry.member.toString() === user.toString());
+            if (!userSplit) {
+                throw new Error(`User ${user} is not part of the group`);
+            }
+            // Deduct the per-person expense from the user's amount
+            userSplit.amount += expensePerPerson;
+        }
+
+        //Nullifying split
+        let bal = 0
+        for (const entry of group.split) {
+            bal += entry.amount; // Add each member's amount to the balance
+        }
+
+        //Updating back the split values to the group
+        await Group.updateOne({
+            _id: groupId
+        }, group)
+
+        return { success: true };
+    }
+    catch (err) {
+        logger.error(
+            `URL: ${originalUrl} | Status: ${err.status || 500} | Message: ${err.message}`
+        );
+        return { success: false, message: err.message };
+    }
+}
 
 
 /*

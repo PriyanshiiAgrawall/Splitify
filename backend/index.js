@@ -7,6 +7,7 @@ import express from "express";
 import { dbConnect } from "./db/db.js";
 import userRoutes from "./routes/userRouter.js";
 import groupRoutes from "./routes/groupRouter.js"
+import expenseRoutes from "./routes/expenseRouter.js"
 import cors from 'cors';
 const app = express();
 
@@ -56,4 +57,6 @@ app.use((req, res, next) => {
 app.use('/api/users/v1', userRoutes);
 
 
-app.use('/api/groups', groupRoutes);
+app.use('/api/groups/v1', groupRoutes);
+
+app.use('/api/expense/v1', expenseRoutes);

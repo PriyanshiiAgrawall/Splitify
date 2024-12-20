@@ -15,6 +15,7 @@ const userRegistrationInput = z.object({
 // User Registeration function
 // Accepts: firstName, lastName, emailId, password 
 // API: /users/v1/register
+//TESTED
 
 export const userRegistration = async (req, res) => {
     try {
@@ -62,6 +63,7 @@ User login function
 Accepts: email Id & Pass
 Route-
 */
+//TESTED
 
 const userLoginInput = z.object({
     emailId: z.string().email("Invalid email format"),
@@ -140,6 +142,7 @@ Accepts: user email Id
 Returns: user details (ensure password is removed)
 route: 
 */
+//TESTED
 const viewUserSchema = z.object({
     emailId: z
         .string()
@@ -186,6 +189,7 @@ Returns: all user Email ID who are registered in the app
 //why we need this function
 //Select group members by their email IDs.
 //Send invitations to join the group.
+//TESTED
 
 export const fetchAllRegisteredEmails = async (req, res) => {
     try {
@@ -230,6 +234,7 @@ Delete User function
 This function is used to delete an existing user in the database 
 Accepts: user email id 
 */
+
 
 
 
