@@ -113,14 +113,14 @@ export const userLogin = async (req, res) => {
         //now creating cookie to send token in each subsequent request 
         const options = {
             expiresIn: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-            httpOnly: true,
+            // httpOnly: true,
         };
         return res.cookie("token", token, options).status(200).json({
             message: "Successfully Logged In",
             success: true,
             //we defined all fields of user here so that password doesnt go in response by mistake
             user: user,
-            token: token,
+            accessToken: token,
         })
 
     }

@@ -66,9 +66,9 @@ export default function Login() {
     //If you save a JavaScript object, you must stringify it before storing, and parse it back into an object when retrieving.
     const user = JSON.parse(localStorage.getItem('profile'))
     //If user logged in the page is auto directed to dashboard
-    if (user) {
-        user.accessToken && (window.location.href = configData.DASHBOARD_URL)
-    }
+    // if (user) {
+    //     user.accessToken && (window.location.href = configData.DASHBOARD_URL)
+    // }
     return (
         <>
             <RootStyle>

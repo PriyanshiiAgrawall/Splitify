@@ -143,6 +143,10 @@ export const addExpense = async (req, res) => {
                 message: `Failed to update group split: ${updateResponse.message}`
             })
         }
+
+        //add this expense to group expenses field 
+        group.expenses.push(newExpense._id);
+        await group.save();
         // Send the success response
         res.status(200).json({
             status: "Success",
@@ -362,10 +366,31 @@ export const deleteExpense = async (req, res) => {
             });
         }
 
+        // Check to which group this expense belongs to
+        const groupId = expense.groupId;
 
-        // Delete the expense
-        const deleteResult = await Expense.deleteOne({ _id: validatedData.id });
+        if (!groupId) {
+            return res.status(403).json({
+                success: false,
+                message: "group id not present in expense hence it is not a valid expense",
+            });
+        }
+        //fetch group
+        const expenseBelongToAGroup = await Group.findById({ _id: groupId })
+        if (!expenseBelongToAGroup) {
+            return res.status(403).json({
+                success: false,
+                message: "Expense doesnt belong to any group",
+            });
+        }
 
+
+        // Remove the expense ID from the group's expenses array
+        expenseBelongToAGroup.expenses = expenseBelongToAGroup.expenses.filter((expenseId) => expenseId.toString() !== validatedData.id);
+
+        // Save the updated group
+        await expenseBelongToAGroup.save();
+        const deleteResult = await Expense.deleteOne({ _id: validatedData.id })
         if (deleteResult.deletedCount === 0) {
             return res.status(400).json({
                 success: false,
@@ -590,10 +615,20 @@ Returns : top 5 most resent expense user is a expenseMember in all the groups
 export const recentUserExpenses = async (req, res) => {
     try {
 
+        //frontend is sending userId 
+        const userId = req.query.userId
+            ;
+        //check token decoded id and this is same
         if (!req.user.id) {
             return res.status(400).json({
                 success: false,
                 message: "User ID is missing, possible issue with the token",
+            });
+        }
+        if (req.user.id !== userId) {
+            return res.status(403).json({
+                success: false,
+                message: "Unauthorized access: token user does not match the requested user ID",
             });
         }
 
@@ -602,7 +637,8 @@ export const recentUserExpenses = async (req, res) => {
             expenseMembers: req.user.id
         })
             .sort({ $natural: -1 }) // Get the newest first
-            .limit(5); // Limit to the top 5
+            .populate('expenseCreatedBy', 'firstName') // Populate specific fields for the creator
+            .populate('expensePaidBy', 'firstName').limit(5);
 
         // Check if any expenses were found
         if (recentExpense.length === 0) {

@@ -4,7 +4,7 @@
 
 import { Grid, Box, styled, Typography, autocompleteClasses, Popover, MenuList, MenuItem, ListItemIcon, ListItemText, Modal, Stack, Button } from '@mui/material'
 import React, { useState } from 'react'
-import useResponsive from '../../theme/hooks/useResponsive';
+import useResponsive from '../theme/hooks/useResponsive';
 import PropTypes from 'prop-types';
 import { convertToCurrency, currencyFind, getMonthMMM } from '../../utils/helper';
 import Iconify from '../Iconify';
@@ -41,11 +41,14 @@ const modelStyle = {
     borderRadius: 1
 };
 
-
-export default function ExpenseCard({ expenseId, expenseName, expenseAmount, expensePerMember, expenseOwner, expenseDate, currencyType }) {
+export default function ExpenseCard({ expenseId, expenseName, expenseAmount, expensePerMember, expensePaidBy, expenseOwner, expenseDate, currencyType }) {
     const mdUp = useResponsive('up', 'md');
     const [anchorEl, setAnchorEl] = useState(null);
     const [deleteConfirm, setDeleteConfirm] = useState(false)
+
+    // Utility function to zero-pad numbers
+    const zeroPad = (num, places = 2) => String(num).padStart(places, '0');
+
     //anchorEl: Tracks the position of the popover menu for edit/delete options.
 
     //event.currentTarget: Refers to the element to which the event handler is attached. It's useful in cases where the event might propagate through multiple elements (event bubbling), and you want to know which element specifically triggered the handler.
@@ -67,7 +70,7 @@ export default function ExpenseCard({ expenseId, expenseName, expenseAmount, exp
 
     const apiDeleteCall = async () => {
         await deleteExpenseService({ id: expenseId })
-        window.location.reload()
+        // window.location.reload()
         deleteConfirmClose()
     }
 
@@ -93,7 +96,7 @@ export default function ExpenseCard({ expenseId, expenseName, expenseAmount, exp
                         left: 20,
                         position: 'relative'
                     }}>
-                        <b>{new Date(expenseDate).getDate().zeroPad()}</b>
+                        <b>{zeroPad(new Date(expenseDate).getDate())}</b>
                     </Typography>
                     <Typography variant="body" sx={{
                         fontSize: 18,
@@ -124,7 +127,7 @@ export default function ExpenseCard({ expenseId, expenseName, expenseAmount, exp
                         fontSize: 9
                     }}
                 >
-                    Paid by, <br />{expenseOwner}
+                    Paid by, <br />{expensePaidBy}
                 </Typography>
 
             </Grid>

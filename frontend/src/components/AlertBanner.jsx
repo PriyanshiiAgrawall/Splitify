@@ -1,7 +1,7 @@
 
 import { Box, Snackbar, Alert } from '@mui/material'
 import PropTypes from 'prop-types';
-import useResponsive from '../theme/hooks/useResponsive';
+import useResponsive from './theme/hooks/useResponsive'
 
 
 AlertBanner.propTypes = {

@@ -21,7 +21,7 @@
 //     "Charlie" => 30
 // }
 
-export function minimumTransactions(transactions) {
+export default function minimumTransactions(transactions) {
     const splits = [];
     const transactionsMap = new Map(Object.entries(transactions));
 

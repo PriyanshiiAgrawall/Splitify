@@ -3,18 +3,41 @@ import configData from '../config.json'
 
 export const login = async (formData, setAlertMessage, setShowAlert) => {
     try {
-        //data is the entire payload from backend
-        const { data } = await api.loginIn(formData)
-        console.log(data);
-        //backend sends user obj and token and we save it in local storage
-        localStorage.setItem("profile", JSON.stringify(data))
 
-        window.location.href = configData.DASHBOARD_URL
+        const { data } = await api.loginIn(formData)
+
+        console.log(data);
+        const cookies = document.cookie;
+        console.log("Cookies:", cookies);
+
+        const profile = {
+            user: data.user,
+            accessToken: data.accessToken
+        }
+        console.log("Profile to save in localStorage:", profile);
+        //backend sends user obj and token and we save it in local storage
+        localStorage.setItem("profile", JSON.stringify(profile))
+        console.log("Profile successfully saved in localStorage");
+        // window.location.href = configData.DASHBOARD_URL
         return data
     } catch (err) {
         setShowAlert(true)
-        err.response.status === 400 || err.response.status === 401
-            ? setAlertMessage(err.response.data.message) : setAlertMessage("Oops! Something went worng")
+        // Handle specific HTTP error responses
+        if (err.response) {
+            // Backend responded with a status code outside the 2xx range
+            const { status, data } = err.response;
+            if (status === 400 || status === 401) {
+                setAlertMessage(data.message || "Invalid credentials provided");
+            } else {
+                setAlertMessage("Oops! Something went wrong");
+            }
+        } else if (err.request) {
+            // No response received from the backend
+            setAlertMessage("Network error: Unable to reach the server");
+        } else {
+            // Other errors (e.g., request setup issues)
+            setAlertMessage("An unexpected error occurred");
+        }
         return false
     }
 }
@@ -35,5 +58,5 @@ export const register = async (formData, setShowAlert, setAlertMessage) => {
 
 export const logout = () => {
     localStorage.removeItem("profile");
-    window.location.href = configData.LOGIN_URL
+    // window.location.href = configData.LOGIN_URL
 }

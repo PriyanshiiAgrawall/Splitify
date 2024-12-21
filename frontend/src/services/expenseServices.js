@@ -1,9 +1,12 @@
-import logger from "../../../backend/utils/logger"
+import * as api from '../api/index'
+import configData from '../config.json'
 
 export const getUserExpenseService = async (data, setAlert, setAlertMessage) => {
     try {
-        const expense_details = await api.getUserExpense(data)
-        return expense_details
+        console.log("reached");
+        console.log("Payload received in getRecentUserExpService:", data);
+        const response = await api.getUserExpense(data)
+        return response
     } catch (err) {
         setAlert(true)
         err.response.status === 400 || err.response.status === 401
@@ -30,7 +33,7 @@ This function is used to deted the expense added to the group
 Accepts: Group ID not null group ID exist in the DB 
          Expense ID not null expense ID exist in the DB for the perticular group
 */
-exports.deleteExpense = async (req, res) => {
+export const deleteExpense = async (req, res) => {
     try {
         var expense = await model.Expense.findOne({
             _id: req.body.id
@@ -53,9 +56,22 @@ exports.deleteExpense = async (req, res) => {
             response: deleteExp
         })
     } catch (err) {
-        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+
         res.status(err.status || 500).json({
             message: err.message
         })
+    }
+}
+
+export const getRecentUserExpService = async (data, setAlert, setAlertMessage) => {
+    try {
+        console.log("reached here");
+        return await api.getRecentUserExp(data)
+        console.log("reached here too ");
+    } catch (err) {
+        setAlert(true)
+        err.response.status === 400 || err.response.status === 401
+            ? setAlertMessage(err.response.data.message) : setAlertMessage("Oops! Something went worng")
+        return false
     }
 }
