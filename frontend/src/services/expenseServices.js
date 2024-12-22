@@ -1,6 +1,19 @@
 import * as api from '../api/index'
 import configData from '../config.json'
 
+
+export const addExpenseService = async (data, setAlert, setAlertMessage) => {
+    try {
+        const add_exp_response = await api.addExpense(data)
+        return add_exp_response
+    } catch (err) {
+        setAlert(true)
+        err.response.status === 400 || err.response.status === 401
+            ? setAlertMessage(err.response.data.message) : setAlertMessage("Oops! Something went worng")
+        return false
+    }
+}
+
 export const getUserExpenseService = async (data, setAlert, setAlertMessage) => {
     try {
         console.log("reached");
@@ -62,12 +75,37 @@ export const deleteExpense = async (req, res) => {
         })
     }
 }
-
+//TESTED
 export const getRecentUserExpService = async (data, setAlert, setAlertMessage) => {
     try {
         console.log("reached here");
         return await api.getRecentUserExp(data)
         console.log("reached here too ");
+    } catch (err) {
+        setAlert(true)
+        err.response.status === 400 || err.response.status === 401
+            ? setAlertMessage(err.response.data.message) : setAlertMessage("Oops! Something went worng")
+        return false
+    }
+}
+
+export const getExpDetailsService = async (data, setAlert, setAlertMessage) => {
+    try {
+        return await api.getExpDetails(data)
+    } catch (err) {
+        setAlert(true)
+        err.response.status === 400 || err.response.status === 401
+            ? setAlertMessage(err.response.data.message) : setAlertMessage("Oops! Something went worng")
+        return false
+    }
+}
+
+
+
+export const editExpenseService = async (data, setAlert, setAlertMessage) => {
+    try {
+        const edit_exp_response = await api.editExpense(data)
+        return edit_exp_response
     } catch (err) {
         setAlert(true)
         err.response.status === 400 || err.response.status === 401

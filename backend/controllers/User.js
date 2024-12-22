@@ -193,6 +193,10 @@ Returns: all user Email ID who are registered in the app
 
 export const fetchAllRegisteredEmails = async (req, res) => {
     try {
+
+        //check the user fetching this is registered user
+
+
         // this query gives array of email objects like 
         //     [
         //   { "emailId": "user1@example.com" },
@@ -216,7 +220,7 @@ export const fetchAllRegisteredEmails = async (req, res) => {
         //now we'll have ["user1@example.com", "user2@example.com"]
         res.status(200).json({
             success: true,
-            user: emailList
+            users: emailList
         });
     }
     catch (err) {

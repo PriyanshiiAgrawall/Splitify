@@ -25,3 +25,21 @@ export function getMonthMMM(expDate) {
     const date = new Date(expDate)
     return monthNamesMMM[date.getMonth()];
 }
+
+
+export function categoryIcon(groupCategory) {
+    switch (groupCategory) {
+        case "Home":
+            return 'ant-design:home-filled'
+        case "Trip":
+            return 'ic:outline-flight'
+        case "Office":
+            return 'mdi:office-building-marker'
+        case "Sports":
+            return 'material-symbols:sports-cricket'
+        case "Others":
+            return 'foundation:page-edit'
+        default:
+            return 'ic:baseline-insert-page-break'
+    }
+}

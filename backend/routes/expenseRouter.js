@@ -8,5 +8,6 @@ router.get("/viewuserexpense", validateToken, viewUserExpense);
 router.get("/viewexpense", validateToken, viewExpense);
 router.get("/viewgroupexpense", validateToken, viewGroupExpense);
 router.get("/recentuserexpense", validateToken, recentUserExpenses);
+router.get("/groupCategoryExpense", groupCategoryExpense);
 router.delete("/deleteexpense", validateToken, deleteExpense)
 export default router;

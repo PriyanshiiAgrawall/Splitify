@@ -60,3 +60,13 @@ export const logout = () => {
     localStorage.removeItem("profile");
     // window.location.href = configData.LOGIN_URL
 }
+
+
+export const getEmailList = async () => {
+    try {
+        const data = await api.getEmailList()
+        return data
+    } catch (err) {
+        return null
+    }
+}

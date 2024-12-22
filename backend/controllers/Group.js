@@ -32,9 +32,8 @@ const createGroupInput = z.object({
     groupCategory: z.string().optional(),
     // groupTotalExpenditure: z.number().default(0),()
     // expenses: z.array(z.string()).optional(),(initially group will have no expenses hence it will be empty )
-    groupMembers: z.array(z.string().refine((id) => mongoose.Types.ObjectId.isValid(id), {
-        message: "Invalid Member ID",
-    }))
+    groupMembers: z
+        .array(z.string().email('Invalid email format'))
 
 })
 //TESTED
@@ -46,6 +45,8 @@ export const createGroup = async (req, res) => {
         //person creating the group will add others to group but if he adds nobody he is the only member so add him in member list in req.body
         //in validateToken middleware we put decoded token in req.user so from there fetching email of owner
         const groupOwnerId = req.user.id;
+        const groupOwnerEmail = req.user.emailId;
+        console.log(groupOwnerEmail);
         //check if groupowner exists in db 
         const ownerExists = await User.findById(groupOwnerId);
         if (!ownerExists) {
@@ -54,30 +55,35 @@ export const createGroup = async (req, res) => {
         //if no group members present then just put owner in group members 
         //if group members present then check if owner is among them if not then put him/her
         if (!groupData.groupMembers || groupData.groupMembers.length === 0) {
-            groupData.groupMembers = [groupOwnerId];
-        } else if (!groupData.groupMembers.includes(groupOwnerId)) {
-            groupData.groupMembers.push(groupOwnerId);
+            groupData.groupMembers = [groupOwnerEmail];
+        } else if (!groupData.groupMembers.includes(groupOwnerEmail)) {
+            groupData.groupMembers.push(groupOwnerEmail);
         }
+        //incoming request body has email ids not userids 
 
         //validate from zod 
         const validatedData = createGroupInput.parse(groupData);
 
 
         //validate group members exist in the db 
-        for (const userId of validatedData.groupMembers) {
-            const memberExists = await User.findById(userId);
+        const memberIds = [];
+        for (let emailId of validatedData.groupMembers) {
+            const memberExists = await User.findOne({ emailId: emailId });
+
             if (!memberExists) {
-                return res.status(400).json({ message: `Invalid member ID: ${userId}` });
+                return res.status(400).json({ message: `Invalid member ID: ${emailId}` });
             }
+            memberIds.push(memberExists._id);
         }
+
         // Initialize the split array
-        const splitArray = validatedData.groupMembers.map((userId) => ({
+        const splitArray = memberIds.map((userId) => ({
             member: userId,
             amount: 0,
             status: "owes",
         }));
 
-
+        validatedData.groupMembers = memberIds;
 
         //creating entry in db
         const newGroup = await Group.create({
@@ -117,7 +123,7 @@ API:
 
 export const viewGroup = async (req, res) => {
     try {
-        const { groupId } = req.body; // Extract group ID from the request body
+        const { groupId } = req.query.groupId; // Extract group ID from the params
 
         // validate groupid is given
         if (!groupId) {
@@ -181,14 +187,31 @@ Validation: email Id present in DB
 //TESTED
 export const findUserGroups = async (req, res) => {
     try {
-        const userId = req.user.id;
+        const userId = req.query.userId;
 
-        // Validate input
+
         if (!userId) {
             return res.status(400).json({
                 status: "Fail",
-                message: "User Id cant be fetched issue with token",
+                message: "User Id cant be fetched issue with frontend sending it",
             });
+        }
+        // Validate token has same id 
+        const tokenUserId = req.user.id
+        if (!tokenUserId) {
+            return res.status(400).json({
+                status: "Fail",
+                message: "User Id cant be fetched from token issue with token",
+            });
+        }
+
+        //frontend send id and token user id should be same 
+        if (userId.toString() !== tokenUserId.toString()) {
+            return res.status(400).json({
+                status: "Fail",
+                message: "User Id and token user id mismatch",
+            });
+
         }
 
         // // Find the user's ObjectId using emailId
@@ -206,12 +229,15 @@ export const findUserGroups = async (req, res) => {
         const groups = await Group.find({ groupMembers: userId })
             .sort({ $natural: -1 })
             .populate("groupMembers", "firstName lastName emailId")
-            .populate("groupOwner", "firstName lastName emailId");
+            .populate("groupOwner", "firstName lastName emailId").populate({
+                path: "split.member", // Populate the 'member' field inside the split array
+                select: "firstName lastName emailId", // Select the fields you want to populate
+            });
         //When { $natural: -1 }: Documents are returned in reverse order of insertion (descending order).
         //ensures the newest documents (those inserted most recently) are returned first.
         res.status(200).json({
             status: "Success",
-            groups,
+            groups: groups,
         });
     } catch (err) {
         logger.error(`URL: ${req.originalUrl} | Status: ${err.status || 500} | Message: ${err.message}`);
