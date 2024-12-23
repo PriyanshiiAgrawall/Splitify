@@ -63,7 +63,7 @@ export const CalenderExpenseGraph = () => {
         const getUserDetails = async () => {
             setLoading(true);
             const userIdJson = {
-                user: profile.user.emailId
+                userId: profile.user._id
             }
             const response_group_monthly = await getUserMonthlyExpService(userIdJson, setAlert, setAlertMessage)
             setUserMonthlyExp(response_group_monthly.data.data)

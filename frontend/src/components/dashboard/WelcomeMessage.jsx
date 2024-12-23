@@ -1,7 +1,8 @@
-import { Box, Button, Grid, Typography } from "@mui/material"
+import { Box, Button, Grid, Typography } from "@mui/material";
 import { Link as RouterLink } from 'react-router-dom';
-import configData from '../../config.json'
-import { dashboardWelcomeIllustration } from '../../assets/dashboardWelcomeIllustration.png';
+import configData from '../../config.json';
+import dashboardWelcomeIllustration from '../../assets/dashboardWelcomeIllustration.png'; // Import the image
+
 export const WelcomeMessage = () => {
     return (
         <Box sx={{
@@ -14,14 +15,12 @@ export const WelcomeMessage = () => {
             <Grid container spacing={2} justifyContent={'center'}
                 alignItems={'center'}
             >
-
                 <Grid container>
                     <Grid item lg={6} md={6} xs={12}>
-
                         <Typography variant="h5" pb={2}>
                             Hello there, Welcome back!
                         </Typography>
-                        <Typography variant="body2" pb={2} >
+                        <Typography variant="body2" pb={2}>
                             Keep tabs on shared expenses and settle up your way – quick, easy, and hassle-free!
                         </Typography>
                         <Button variant="contained"
@@ -32,11 +31,14 @@ export const WelcomeMessage = () => {
                         </Button>
                     </Grid>
                     <Grid item lg={5} md={6} xs={12}>
-                        <img src={dashboardWelcomeIllustration} alt="dashboard" />
+                        <img
+                            src={dashboardWelcomeIllustration}
+                            alt="dashboard illustration"
+                            style={{ width: '100%', height: 'auto' }} // Optional: Adjust image styling
+                        />
                     </Grid>
                 </Grid>
-
             </Grid>
         </Box>
-    )
-}
+    );
+};

@@ -179,9 +179,9 @@ export const editGroup = async (formData) => {
 export const getGroupDetails = async (queryParams) => {
     try {
         // Use queryParams directly in the params
-        console.log("Sending API Request with params:", queryParams);
+        console.log("Sending API Request with params:1234", queryParams);
         console.log(profile.accessToken);
-        const response = await API.get('/api/group/v1/viewgroup', {
+        const response = await API.get('/api/groups/v1/viewgroup', {
             headers: {
                 'Authorization': `Bearer ${profile.accessToken}` // Ensure token is directly set
             },
@@ -203,32 +203,50 @@ export const getGroupDetails = async (queryParams) => {
     }
 };
 
-export const getSettle = (formData) => API.post('/api/group/v1/groupBalanceSheet', formData, puttingTokenInHeader)
+export const getSettle = (formData) => API.post('/api/groups/v1/groupBalanceSheet', formData, puttingTokenInHeader)
 
-export const makeSettle = (formData) => API.post('/api/group/v1/makeSettlement', formData, puttingTokenInHeader)
-
-//EXPENSES ROUTES
-
-export const getGroupExpense = (formData) => API.post('/api/expense/v1/viewgroupexpense', formData, puttingTokenInHeader)
-
-export const addExpense = async (formData) => {
+export const makeSettle = async (formData) => {
     try {
-        // Log the payload being sent for debugging
         console.log("Sending API Request with payload:", formData);
         console.log(profile.accessToken);
-
-        // Make the POST request to the backend
-        const response = await API.post('/api/expense/v1/addexpense', formData, {
+        const response = await API.post('/api/groups/v1/makeSettlement', formData, {
             headers: {
-                'Authorization': `Bearer ${profile.accessToken}`, // Attach token to headers
+                'Authorization': `Bearer ${profile.accessToken}`,
             },
         });
+        console.log("API Response:", response.data);
+        return response;
+    } catch (error) {
+        console.error("Error in addExpense API call:", error.response || error.message);
 
-        // Log the API response for debugging
+        if (error.response) {
+            console.error("Status:", error.response.status);
+            console.error("Data:", error.response.data);
+            console.error("Headers:", error.response.headers);
+        }
+        throw error;
+    }
+};
+//EXPENSES ROUTES
+
+
+
+export const getGroupExpense = async (queryParams) => {
+    try {
+        // Use queryParams directly in the params
+        console.log("Sending API Request with params:1234", queryParams);
+        console.log(profile.accessToken);
+        const response = await API.get('/api/expense/v1/viewgroupexpense', {
+            headers: {
+                'Authorization': `Bearer ${profile.accessToken}`
+            },
+            params: queryParams, // Query parameters
+        });
+
         console.log("API Response:", response.data);
         return response; // Return the response directly
     } catch (error) {
-        console.error("Error in addExpense API call:", error.response || error.message);
+        console.error("Error in getRecentUserExp API call:", error.response || error.message);
 
         if (error.response) {
             // Log details for better debugging
@@ -237,6 +255,29 @@ export const addExpense = async (formData) => {
             console.error("Headers:", error.response.headers);
         }
         throw error; // Rethrow the error for the caller to handle
+    }
+};
+
+export const addExpense = async (formData) => {
+    try {
+        console.log("Sending API Request with payload:", formData);
+        console.log(profile.accessToken);
+        const response = await API.post('/api/expense/v1/addexpense', formData, {
+            headers: {
+                'Authorization': `Bearer ${profile.accessToken}`,
+            },
+        });
+        console.log("API Response:", response.data);
+        return response;
+    } catch (error) {
+        console.error("Error in addExpense API call:", error.response || error.message);
+
+        if (error.response) {
+            console.error("Status:", error.response.status);
+            console.error("Data:", error.response.data);
+            console.error("Headers:", error.response.headers);
+        }
+        throw error;
     }
 };
 

@@ -526,8 +526,8 @@ Returns: Json with all the expense record and the total expense amount for the g
 
 export const viewGroupExpense = async (req, res) => {
     try {
-        const { groupId } = req.body;
-
+        const { id } = req.query;
+        const groupId = id
         if (!groupId) {
             return res.status(400).json({
                 success: false,
@@ -574,7 +574,7 @@ export const viewGroupExpense = async (req, res) => {
             success: true,
             message: "Group expenses retrieved successfully",
             expenses: groupExpenses,
-            totalAmount,
+            totalAmount: totalAmount,
         });
     } catch (err) {
         // Log the error and respond with a server error

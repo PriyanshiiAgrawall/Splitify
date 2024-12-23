@@ -14,7 +14,7 @@
     "EDIT_EXPENSE_ROUTER_URL": "/dashboard/editExpense/:expenseId",
     "VIEW_EXPENSE_URL": "/dashboard/viewExpense/",
     "VIEW_EXPENSE_ROUTER_URL": "/dashboard/viewExpense/:expenseId",
-    "CREATE_GROUP_URL": "/dashboard/crateGroup",
+    "CREATE_GROUP_URL": "/dashboard/createGroup",
     "ABOUT_URL": "/about",
     "USER_PROFILE_URL": "/dashboard/userProfile",
     "USER_DELETED_URL": "/userProfile/confirmDelete",

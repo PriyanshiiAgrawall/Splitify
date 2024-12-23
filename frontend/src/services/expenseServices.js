@@ -113,3 +113,76 @@ export const editExpenseService = async (data, setAlert, setAlertMessage) => {
         return false
     }
 }
+
+
+export const getGroupCategoryExpService = async (data, setAlert, setAlertMessage) => {
+    try {
+        return await api.getGroupCategoryExp(data)
+
+    } catch (err) {
+        setAlert(true)
+        err.response.status === 400 || err.response.status === 401
+            ? setAlertMessage(err.response.data.message) : setAlertMessage("Oops! Something went worng")
+        return false
+    }
+}
+
+export const getUserDailyExpService = async (data, setAlert, setAlertMessage) => {
+    try {
+        return await api.getUserDailyExp(data)
+
+    } catch (err) {
+        setAlert(true)
+        err.response.status === 400 || err.response.status === 401
+            ? setAlertMessage(err.response.data.message) : setAlertMessage("Oops! Something went worng")
+        return false
+    }
+}
+
+export const getUserMonthlyExpService = async (userId, setAlert, setAlertMessage) => {
+    try {
+        console.log(userId);
+        return await api.getUserMonthlyExp(userId)
+
+    } catch (err) {
+        setAlert(true)
+        err.response.status === 400 || err.response.status === 401
+            ? setAlertMessage(err.response.data.message) : setAlertMessage("Oops! Something went worng")
+        return false
+    }
+}
+export const getUserCategoryExpService = async (data, setAlert, setAlertMessage) => {
+    try {
+        return await api.getUserCategoryExp(data)
+
+    } catch (err) {
+        setAlert(true)
+        err.response.status === 400 || err.response.status === 401
+            ? setAlertMessage(err.response.data.message) : setAlertMessage("Oops! Something went worng")
+        return false
+    }
+}
+
+export const getGroupDailyExpService = async (data, setAlert, setAlertMessage) => {
+    try {
+        return await api.getGroupDailyExp(data)
+
+    } catch (err) {
+        setAlert(true)
+        err.response.status === 400 || err.response.status === 401
+            ? setAlertMessage(err.response.data.message) : setAlertMessage("Oops! Something went worng")
+        return false
+    }
+}
+
+export const getGroupMonthlyExpService = async (data, setAlert, setAlertMessage) => {
+    try {
+        return await api.getGroupMonthlyExp(data)
+
+    } catch (err) {
+        setAlert(true)
+        err.response.status === 400 || err.response.status === 401
+            ? setAlertMessage(err.response.data.message) : setAlertMessage("Oops! Something went worng")
+        return false
+    }
+}

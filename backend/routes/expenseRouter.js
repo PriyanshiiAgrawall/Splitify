@@ -1,7 +1,7 @@
 import express from "express";
 const router = express.Router()
 import { validateToken } from "../middlewares/apiAuthentication.js"
-import { addExpense, deleteExpense, editExpense, recentUserExpenses, viewExpense, viewGroupExpense, viewUserExpense } from "../controllers/Expense.js";
+import { addExpense, deleteExpense, editExpense, groupCategoryExpense, recentUserExpenses, viewExpense, viewGroupExpense, viewUserExpense } from "../controllers/Expense.js";
 router.post("/addexpense", validateToken, addExpense);
 router.post("/editexpense", validateToken, editExpense);
 router.get("/viewuserexpense", validateToken, viewUserExpense);

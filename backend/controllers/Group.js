@@ -123,8 +123,9 @@ API:
 
 export const viewGroup = async (req, res) => {
     try {
-        const { groupId } = req.query.groupId; // Extract group ID from the params
-
+        const { id } = req.query; // Extract group ID from the params
+        const groupId = id
+        console.log(groupId);
         // validate groupid is given
         if (!groupId) {
             return res.status(400).json({
@@ -136,12 +137,16 @@ export const viewGroup = async (req, res) => {
 
         // Fetch  group from the db
 
-        const group = await Group.findOne({ _id: groupId });
-        // const group = await Group.findOne({ _id: groupId }).populate("groupMembers", "firstName lastName emailId").populate("groupOwner", "firstName lastName emailId").populate({
-        //     path: "split.member",
-        //     select: "firstName lastName emailId",
-        // });
-        //as member in split is a nested field so for population we need to give path 
+        const group = await Group.findOne({ _id: groupId })
+            .populate("groupOwner", "firstName lastName emailId") // Populate groupOwner with specific fields
+            .populate("groupMembers", "firstName lastName emailId") // Populate groupMembers with specific fields
+            .populate("expenses") // Populate expenses (assuming Expense schema is referenced)
+            .populate({
+                path: "split.member", // Populate split.member since it's a nested field
+                select: "firstName lastName emailId",
+            });
+
+
 
         // Check if the group exists
         if (!group) {
@@ -153,10 +158,10 @@ export const viewGroup = async (req, res) => {
 
         //check the person who is retriving group is group member 
         const memberRetrivingGroupId = req.user.id;
-        if (group.groupMembers.toString() !== memberRetrivingGroupId) {
+        if (!group.groupMembers.some(member => member._id.toString() === memberRetrivingGroupId)) {
             return res.status(403).json({
                 success: false,
-                message: "Unauthorized action. Only the person who is the part of the group can access it",
+                message: "Unauthorized action. Only the person who is part of the group can access it",
             });
         }
 
@@ -175,7 +180,7 @@ export const viewGroup = async (req, res) => {
         });
     }
 };
-
+//6765e0cfd0e9ad1a515e7232
 
 
 /*
@@ -271,9 +276,9 @@ const editGroupInput = z.object({
         message: "Description is too long"
     }).optional(),
     groupCategory: z.string().optional(),
-    groupMembers: z.array(z.string().refine((id) => mongoose.Types.ObjectId.isValid(id), {
-        message: "Invalid Member ID",
-    })).optional()
+    groupMembers: z.array(
+        z.string("Member ID cannot be empty")
+    ).optional(),
 
 });
 
@@ -293,7 +298,20 @@ export const editGroup = async (req, res) => {
 
         //person editing should be in the group 
         const personEditingId = req.user.id;
-        if (!group.groupMembers.includes(personEditingId)) {
+        //groupMembers is array of emails
+        let groupMembersIds = []
+        for (let email of req.body.groupMembers) {
+            let user = await User.findOne({ emailId: email });
+            if (!user) {
+                return res.status(403).json({
+                    success: false,
+                    message: `Group member ${email} not found in the database`,
+                });
+            }
+            groupMembersIds.push(user._id.toString())
+
+        }
+        if (!groupMembersIds.includes(personEditingId)) {
             return res.status(403).json({
                 success: false,
                 message: "Unauthorized action. Only the person who is the part of the group can edit it",
@@ -301,11 +319,11 @@ export const editGroup = async (req, res) => {
         }
         //new group members array cant be empty if it is put person editing in the group members and make them owner 
         if (!validatedData.groupMembers || validatedData.groupMembers.length === 0) {
-            validatedData.groupMembers = [personEditingId];
+            groupMembersIds = [personEditingId];
             validatedData.groupOwner = personEditingId
 
             // Log a warning for the user but do not return early
-            console.log(
+            console.warn(
                 "You are the only member left in the group so you can't leave, Delete group to leave"
             );
 
@@ -313,80 +331,61 @@ export const editGroup = async (req, res) => {
 
         let updatedSplit = [];
         ////if group members are edited then see all to be deleted members should have split amount = 0
-        if (!validatedData.groupMembers || validatedData.groupMembers.length !== 0) {
-            const memberIdsToRemove = group.groupMembers.filter(
-                (memberId) => !validatedData.groupMembers.includes(memberId.toString())
+        const memberIdsToRemove = group.groupMembers.filter(
+            (memberId) => !groupMembersIds.includes(memberId.toString())
+        );
+
+        //splitEntry is the split array of members who are to be removed 
+        for (const memberId of memberIdsToRemove) {
+            const splitEntryArray = group.split.find(
+                (split) => split.member.toString() === memberId.toString()
             );
-
-            //splitEntry is the split array of members who are to be removed 
-            for (const memberId of memberIdsToRemove) {
-                const splitEntryArray = group.split.find(
-                    (split) => split.member.toString() === memberId.toString()
-                );
-                if (splitEntryArray && splitEntryArray.amount !== 0) {
-                    return res.status(400).json({
-                        success: false,
-                        message: `Cannot remove member ${memberId} from the group. Others/They haven't settled up their balances.`,
-                    });
-                }
-            }
-
-
-
-            // Validate all new group members exist in the database
-            for (const userId of validatedData.groupMembers) {
-                const memberExists = await User.findById(userId);
-                if (!memberExists) {
-                    return res.status(400).json({
-                        success: false,
-                        message: `Invalid member ID: ${userId}`,
-                    });
-                }
-            }
-
-            // Remove members who are in memberIdsToRemove
-            // updatedSplit will have split array of those members who are present before and after editing
-            updatedSplit = group.split.filter(
-                (split) => !memberIdsToRemove.includes(split.member.toString())
-            );
-            // Add missing members to the updatedSplit array with an initial split amount of 0
-            validatedData.groupMembers.forEach((memberId) => {
-                const isAlreadyPresent = updatedSplit.some(
-                    (split) => split.member.toString() === memberId.toString()
-                );
-                if (!isAlreadyPresent) {
-                    updatedSplit.push({ member: memberId, amount: 0, status: "owes" });
-                }
-            });
-            validatedData.split = updatedSplit;
-            //if groupmembers are edited and groupowner is deleted out of the group who will be the group owner 
-            const isOwnerPresent = validatedData.groupMembers.includes(group.groupOwner.toString());
-
-            if (!isOwnerPresent) {
-                // Assign a new group owner from the remaining members
-                const [newOwner] = validatedData.groupMembers; //  the first member is the new owner
-                if (!newOwner) {
-                    return res.status(400).json({
-                        success: false,
-                        message: "Group must have at least one member",
-                    });
-                }
-                validatedData.groupOwner = newOwner;
+            if (splitEntryArray && splitEntryArray.amount !== 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Cannot remove member ${memberId} from the group. Others/They haven't settled up their balances.`,
+                });
             }
         }
-        else {
-            // If no group members are provided, use the existing group members
-            validatedData.groupMembers = group.groupMembers;
-            validatedData.split = group.split;
+
+
+
+
+        // Remove members who are in memberIdsToRemove
+        // updatedSplit will have split array of those members who are present before and after editing
+        // Add missing members to the updatedSplit array with an initial split amount of 0
+        groupMembersIds.forEach((memberId) => {
+            const isAlreadyPresent = updatedSplit.some(
+                (split) => split.member.toString() === memberId.toString()
+            );
+            if (!isAlreadyPresent) {
+                updatedSplit.push({ member: memberId, amount: 0, status: "owes" });
+            }
+        });
+
+        //if groupmembers are edited and groupowner is deleted out of the group who will be the group owner 
+        const isOwnerPresent = groupMembersIds.includes(group.groupOwner.toString());
+
+        if (!isOwnerPresent) {
+            // Assign a new group owner from the remaining members
+            const [newOwner] = groupMembersIds; //  the first member is the new owner
+            if (!newOwner) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Group must have at least one member",
+                });
+            }
+            validatedData.groupOwner = newOwner;
         }
+
         const updatePayload = {
             groupName: validatedData.groupName ?? group.groupName,
             //The nullish coalescing operator (??) is used to return the right-hand operand when the left-hand operand is null or undefined.
             //Does not consider 0, '', or false as "fallback-triggering" values
             groupCategory: validatedData.groupCategory ?? group.groupCategory,
-            groupMembers: validatedData.groupMembers,
+            groupMembers: groupMembersIds,
             groupOwner: validatedData.groupOwner,
-            split: validatedData.split,
+            split: updatedSplit,
         };
         // Only add `groupDescription` if it exists in the validated data or the existing group
         //group category has others value as default so no issue with it

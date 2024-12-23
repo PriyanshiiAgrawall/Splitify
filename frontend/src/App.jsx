@@ -10,7 +10,8 @@ import AddExpense from './components/expense/AddExpense';
 import EditExpense from './components/expense/EditExpense';
 import Creategroup from './components/groups/createGroup';
 import Group from './components/groups';
-import { EditGroup } from './components/groups/editGroup';
+
+import Router from './routes.jsx';
 
 
 function App() {
@@ -27,7 +28,8 @@ function App() {
         {/* <EditExpense /> */}
         {/* <Creategroup /> */}
         {/* <Group /> */}
-        <EditGroup />
+        {/* <EditGroup /> */}
+        <Router />
       </ThemeProvider>
 
     </>

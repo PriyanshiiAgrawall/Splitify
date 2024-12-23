@@ -12,7 +12,7 @@ import {
     Select,
     TextField,
     Typography,
-    Button
+    Button,
 } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { useForm, Controller } from 'react-hook-form';
@@ -20,7 +20,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import useResponsive from '../theme/hooks/useResponsive';
 import { getEmailList } from '../../services/authentication';
-import { getGroupDetailsService, editGroupService } from "../../services/groupService"
+import { getGroupDetailsService, editGroupService } from '../../services/groupService';
 import Loading from '../loading';
 import AlertBanner from '../AlertBanner';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -34,12 +34,13 @@ const schema = z.object({
     groupCategory: z.string().optional(),
     groupMembers: z
         .array(z.string().nonempty('Member ID is required'))
-        .min(1, 'At least one group member is required').optional(),
+        .min(1, 'At least one group member is required')
+        .optional(),
 });
 
-export const EditGroup = () => {
+export default function EditGroup() {
     const navigate = useNavigate();
-    const { groupId } = useParams(); // Extract groupId from URL
+    const { groupId } = useParams();
     const mdUp = useResponsive('up', 'md');
     const profile = JSON.parse(localStorage.getItem('profile'));
     const currentUser = profile?.user?.emailId;
@@ -49,12 +50,12 @@ export const EditGroup = () => {
     const [alert, setAlert] = useState(false);
     const [alertMessage, setAlertMessage] = useState('');
 
-    // React Hook Form 
     const {
         control,
         register,
         handleSubmit,
         setValue,
+        watch,
         formState: { errors, isSubmitting },
     } = useForm({
         resolver: zodResolver(schema),
@@ -63,33 +64,34 @@ export const EditGroup = () => {
             groupName: '',
             groupDescription: '',
             groupCategory: '',
-            groupMembers: [currentUser],
+            groupMembers: [],
         },
     });
 
-    // Fetch group details and email list
+    const groupMembers = watch('groupMembers'); // Watch groupMembers field
+
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             try {
+                const payload = { id: groupId };
                 const [emailResponse, groupResponse] = await Promise.all([
                     getEmailList(),
-                    getGroupDetailsService({ groupId: groupId }),
+                    getGroupDetailsService(payload),
                 ]);
 
-                // Populate email list
-                const emailListData = emailResponse.data.users;
-                //removing current user from email list as he is already set to default group member
-                if (emailListData.includes(currentUser)) {
-                    emailListData.splice(emailListData.indexOf(currentUser), 1);
-                }
+                const groupDetails = groupResponse.data.group;
+
+                // Populate email list excluding current group members
+                const emailListData = emailResponse.data.users.filter(
+                    (email) => !groupDetails.groupMembers.some((member) => member.emailId === email)
+                );
                 setEmailList(emailListData);
 
-                // Populate group details
-                const groupDetails = groupResponse.data.group;
-                setValue('groupName', groupDetails.groupName);
+                // Set initial values for the form
+                setValue('groupName', groupDetails.groupName || '');
                 setValue('groupDescription', groupDetails.groupDescription || '');
-                setValue('groupCategory', groupDetails.groupCategory || '');
+                setValue('groupCategory', groupDetails.groupCategory || 'Others');
                 setValue(
                     'groupMembers',
                     groupDetails.groupMembers.map((member) => member.emailId)
@@ -102,14 +104,52 @@ export const EditGroup = () => {
             }
         };
         fetchData();
-    }, [groupId, setValue, currentUser]);
+    }, [groupId, setValue]);
 
-    // Submit handler
+    const handleDeleteMember = (member, event) => {
+
+        event.stopPropagation();
+        console.log(`Removing member: ${member}`);
+        const updatedMembers = groupMembers.filter((item) => item !== member);
+
+        if (updatedMembers.length === 0) {
+            // Show the alert message for 5 seconds
+            setAlert(true);
+            setAlertMessage('You cannot remove all members of the group');
+            setTimeout(() => {
+                setAlert(false);
+                setAlertMessage('');
+            }, 5000); // 5000ms = 5 seconds
+            return;
+        }
+
+        // Update group members and add removed member back to email list
+        setValue('groupMembers', updatedMembers);
+        setEmailList((prevList) => [...prevList, member]);
+    };
+
+    const handleAddMember = (selectedMembers) => {
+        // Find newly added members and remove them from the dropdown
+        console.log(selectedMembers)
+        const addedMembers = selectedMembers.filter((member) => !groupMembers.includes(member));
+        setEmailList((prevList) => prevList.filter((email) => !addedMembers.includes(email)));
+
+        setValue('groupMembers', selectedMembers);
+    };
+
     const onSubmit = async (data) => {
         setLoading(true);
         try {
-            const response = await editGroupService(data);
-            if (response) {
+            const payload = {
+                groupId: data.groupId,
+                groupName: data.groupName || undefined,
+                groupDescription: data.groupDescription || undefined,
+                groupCategory: data.groupCategory || 'Others',
+                groupMembers: data.groupMembers,
+            };
+
+            const response = await editGroupService(payload);
+            if (response.success) {
                 window.location = `${configData.VIEW_GROUP_URL}${groupId}`;
             }
         } catch (error) {
@@ -118,17 +158,6 @@ export const EditGroup = () => {
         } finally {
             setLoading(false);
         }
-    };
-
-    const ITEM_HEIGHT = 48;
-    const ITEM_PADDING_TOP = 8;
-    const MenuProps = {
-        PaperProps: {
-            style: {
-                maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-                width: 250,
-            },
-        },
     };
 
     return (
@@ -176,14 +205,21 @@ export const EditGroup = () => {
                                                 multiple
                                                 {...field}
                                                 input={<OutlinedInput label="Group Members" />}
+                                                value={field.value || []}
+                                                onChange={(event) => handleAddMember(event.target.value)}
                                                 renderValue={(selected) => (
                                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                                                         {selected.map((value) => (
-                                                            <Chip key={value} label={value} />
+                                                            <Chip
+                                                                key={value}
+                                                                label={value}
+                                                                onMouseDown={(event) =>
+                                                                    handleDeleteMember(value, event)
+                                                                }
+                                                            />
                                                         ))}
                                                     </Box>
                                                 )}
-                                                MenuProps={MenuProps}
                                             >
                                                 {emailList.map((email) => (
                                                     <MenuItem key={email} value={email}>
@@ -196,21 +232,7 @@ export const EditGroup = () => {
                                     <FormHelperText>{errors.groupMembers?.message}</FormHelperText>
                                 </FormControl>
                             </Grid>
-                            {/* <Grid item xs={6}>
-                                <FormControl fullWidth error={!!errors.groupCurrency}>
-                                    <InputLabel id="group-currency-label">Currency</InputLabel>
-                                    <Select
-                                        labelId="group-currency-label"
-                                        id="group-currency"
-                                        {...register('groupCurrency')}
-                                    >
-                                        <MenuItem value="INR">₹ INR</MenuItem>
-                                        <MenuItem value="USD">$ USD</MenuItem>
-                                        <MenuItem value="EUR">€ EUR</MenuItem>
-                                    </Select>
-                                    <FormHelperText>{errors.groupCurrency?.message}</FormHelperText>
-                                </FormControl>
-                            </Grid> */}
+
                             <Grid item xs={12}>
                                 <FormControl fullWidth error={!!errors.groupCategory}>
                                     <InputLabel id="group-category-label">Category</InputLabel>
@@ -218,7 +240,6 @@ export const EditGroup = () => {
                                         labelId="group-category-label"
                                         id="group-category"
                                         {...register('groupCategory')}
-                                        input={<OutlinedInput label="Category" />}
                                     >
                                         <MenuItem value="Home">Home</MenuItem>
                                         <MenuItem value="Trip">Trip</MenuItem>
@@ -229,7 +250,6 @@ export const EditGroup = () => {
                                     <FormHelperText>{errors.groupCategory?.message}</FormHelperText>
                                 </FormControl>
                             </Grid>
-                            {mdUp && <Grid item xs={0} md={9} />}
                             <Grid item xs={6} md={3}>
                                 <Button fullWidth size="large" variant="outlined" onClick={() => navigate(-1)}>
                                     Cancel
@@ -252,4 +272,4 @@ export const EditGroup = () => {
             )}
         </Container>
     );
-};
+}
