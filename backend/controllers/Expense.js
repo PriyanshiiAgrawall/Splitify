@@ -5,6 +5,7 @@ import Group from '../models/Group.js';
 import { userBelongToGroupOrNot } from '../utils/validation.js';
 import { addSplit, clearSplit } from './Group.js';
 import Expense from '../models/Expense.js'
+import User from '../models/User.js';
 //input expense request will have
 const inputExpenseSchema = z.object({
     //The .refine() method is used to add custom validation logic for the field. 
@@ -12,12 +13,16 @@ const inputExpenseSchema = z.object({
         message: "Invalid Group ID"
     }),
     expenseName: z.string().nonempty("Expense name is required"),
-    expenseAmount: z.number().positive("Expense amount must be a positive number"),
+    expenseAmount: z.string(),
     //non empty cant be used on numbers
 
     expensePaidBy: z.string().refine((id) => mongoose.Types.ObjectId.isValid(id), {
+        message: "Invalid paid by user ID",
+    }),
+    expenseCreatedBy: z.string().refine((id) => mongoose.Types.ObjectId.isValid(id), {
         message: "Invalid Owner ID",
     }),
+    expenseAmount: z.number().positive("Number should be greater than 0"),
     expenseMembers: z.array(z.string().refine((id) => mongoose.Types.ObjectId.isValid(id), {
         message: "Invalid Member ID",
     })).nonempty("Expense members cannot be empty"),
@@ -39,7 +44,7 @@ This function is used to add expense to the group
 Accepts: Group ID
           Expense Name
           Expense Describtion - max 100 
-          Expense Amount
+          Expense Amount - it is string coming from frontend 
           (Expense Created By- who is creating is automatically owner and hence no need to send it)
          Expense Paid By 
          ExpenseCategory - optional
@@ -57,9 +62,69 @@ Accepts: Group ID
 
 export const addExpense = async (req, res) => {
     try {
-        // Validate the incoming request body using Zod
 
-        const validatedExpense = inputExpenseSchema.parse(req.body);
+        const data = req.body;
+
+        if (!data.expenseMembers || !data.expenseOwner || !data.expensePaidBy) {
+            return res.status(403).json({
+                success: false,
+                message: "Please send all the details",
+            })
+        }
+
+        const membersExpenseIds = []
+        for (let email of data.expenseMembers) {
+            let member = await User.findOne({ emailId: email })
+            if (!member) {
+                return res.status(403).json({
+                    success: false,
+                    message: `user ${email} doesn't exist in the database`,
+                })
+            }
+            membersExpenseIds.push(member._id.toString());
+        }
+        const owner = await User.findOne({ emailId: data.expenseOwner });
+        if (!owner) {
+            return res.status(403).json({
+                success: false,
+                message: `owner ${data.expenseOwner} doesn't exist in the database`,
+            })
+
+        }
+        const ownerId = owner._id.toString();
+
+        const paidBy = await User.findOne({ emailId: data.expensePaidBy });
+        if (!paidBy) {
+            return res.status(403).json({
+                success: false,
+                message: `The person who paid the expense ${data.expensePaidBy} doesn't exist in the database`,
+            })
+
+        }
+        const paidById = paidBy._id.toString();
+
+        const amount = Number(data.expenseAmount)
+        if (amount < 0) {
+            return res.status(403).json({
+                success: false,
+                message: `expense amount should be positive`,
+            })
+
+        }
+        const inputRefactoredData = {
+            groupId: data.groupId,
+            expenseName: data.expenseName,
+            expenseAmount: amount,
+            expensePaidBy: paidById,
+            expenseCreatedBy: ownerId,
+            expenseMembers: membersExpenseIds,
+            expenseDate: data.expenseDate,
+            expenseDescription: data.expenseDescription ?? "",
+            expenseCategory: data.expenseCategory ?? "Others",
+            expenseType: data.expenseType ?? "Cash",
+
+        }
+        const validatedExpense = inputExpenseSchema.parse(inputRefactoredData);
 
         // Check if the group exists
         const group = await Group.findById({ _id: validatedExpense.groupId });
@@ -70,17 +135,25 @@ export const addExpense = async (req, res) => {
             })
         }
         //get owner id email from token decoding
-        const ownerID = req.user.id;
-        if (!ownerID) {
+        const ownerIDfromToken = req.user.id;
+        if (!ownerIDfromToken) {
             return res.status(403).json({
                 success: false,
                 message: "Owner can't be fetched, you have issue with your token ",
             })
         }
 
+        if (ownerIDfromToken !== ownerId.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "Owner coming from token and frontend are different",
+            })
+
+        }
+
 
         // Validate the owner belongs to the group
-        const ownerValidation = await userBelongToGroupOrNot(ownerID, validatedExpense.groupId);
+        const ownerValidation = await userBelongToGroupOrNot(ownerId, validatedExpense.groupId);
         if (!ownerValidation) {
             return res.status(403).json({
                 success: false,
@@ -112,10 +185,10 @@ export const addExpense = async (req, res) => {
             }
         }
 
-        // Ensure `expensePaidBy` person is included in `expenseMembers`
-        if (!validatedExpense.expenseMembers.includes(expensePaidById)) {
-            validatedExpense.expenseMembers.push(expensePaidById);
-        }
+        // // Ensure `expensePaidBy` person is included in `expenseMembers`
+        // if (!validatedExpense.expenseMembers.includes(expensePaidById)) {
+        //     validatedExpense.expenseMembers.push(expensePaidById);
+        // }
 
         // Calculate the per-member expense 
         const expensePerMember = Math.round((validatedExpense.expenseAmount / validatedExpense.expenseMembers.length + Number.EPSILON) * 100) / 100;
@@ -124,7 +197,6 @@ export const addExpense = async (req, res) => {
         // Create the new expense
         const newExpense = await Expense.create({
             ...validatedExpense,
-            expenseCreatedBy: ownerID,
             expensePerMember: expensePerMember,
             expenseCurrency: group.groupCurrency,
         });
@@ -149,7 +221,7 @@ export const addExpense = async (req, res) => {
         await group.save();
         // Send the success response
         res.status(200).json({
-            status: "Success",
+            success: true,
             message: "New expense added",
             expenseId: newExpense._id, splitUpdateResponse: updateResponse,
         });
@@ -554,9 +626,13 @@ export const viewGroupExpense = async (req, res) => {
         }
 
         // Fetch all expenses for the specified group
-        const groupExpenses = await Expense.find({ groupId: groupId }).sort({
-            expenseDate: -1, // Sort by newest first
-        });
+        const groupExpenses = await Expense.find({ groupId: groupId })
+            .sort({ expenseDate: -1 })
+            .populate('groupId', 'groupName groupCurrency')
+            .populate('expenseCreatedBy', 'firstName lastName emailId')
+            .populate('expensePaidBy', 'firstName lastName emailId')
+            .populate('expenseMembers', 'firstName lastName emailId');
+
 
         // Check if there are any expenses
         if (groupExpenses.length === 0) {

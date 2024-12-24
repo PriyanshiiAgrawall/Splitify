@@ -15,7 +15,7 @@ import dataConfig from '../../../config.json';
 import { GroupSettlements } from '../settlement';
 
 const profile = JSON.parse(localStorage.getItem('profile'));
-const emailId = profile?.emailId;
+const emailId = profile?.user.emailId;
 let showCount = 10;
 
 export default function ViewGroup() {
@@ -31,6 +31,7 @@ export default function ViewGroup() {
     const [expFocus, setExpFocus] = useState(false);
     const [expenses, setExpenses] = useState([]);
     const [viewSettlement, setViewSettlement] = useState(0);
+    const [totalAmount, setTotalAmount] = useState(0)
 
     const mdUp = useResponsive('up', 'md');
 
@@ -53,8 +54,8 @@ export default function ViewGroup() {
         setViewSettlement(2);
     };
 
-    const findUserSplit = (split) => {
-        const userSplit = split?.find((item) => item?.member?.emailId === emailId);
+    const findUserSplit = (splits) => {
+        const userSplit = splits?.find((split) => split?.member?.emailId === emailId);
         return userSplit?.amount || 0;
     };
 
@@ -66,9 +67,14 @@ export default function ViewGroup() {
             const response_expense = await getGroupExpenseService(groupIdJson, setAlertExpense, setAlertExpenseMessage);
 
             response_group && setGroup(response_group?.data?.group);
-            response_expense && setGroupExpense(response_expense?.data);
+            response_expense && setGroupExpense(response_expense?.data?.expenses);
             response_expense?.data?.expenses && setExpenses(response_expense?.data?.expenses?.slice(0, 5));
             if (response_expense?.data?.expenses?.length <= 5 || !response_expense) setShowAllExp(true);
+            setTotalAmount(response_expense?.data?.totalAmount)
+            console.log("here")
+            console.log(group)
+            console.log(groupExpense)
+            console.log(expenses)
             setLoading(false);
         };
 
@@ -185,11 +191,12 @@ export default function ViewGroup() {
                                 </LabelIconStyle>
                                 <Box>
                                     <Typography variant="h6" sx={{ color: (theme) => theme.palette['primary'].dark }}>
-                                        Total expense
+                                        Total {group.groupName} expense
                                     </Typography>
+
                                     <Typography variant="h5" sx={{ color: (theme) => theme.palette['primary'].darker }}>
                                         {currencyFind(group?.groupCurrency)}{' '}
-                                        {groupExpense.total ? convertToCurrency(groupExpense.total) : 0}
+                                        {totalAmount ? convertToCurrency(totalAmount) : 0}
                                     </Typography>
                                 </Box>
                             </Stack>

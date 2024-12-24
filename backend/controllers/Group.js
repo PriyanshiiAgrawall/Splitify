@@ -169,7 +169,7 @@ export const viewGroup = async (req, res) => {
         // Respond with the group details
         res.status(200).json({
             status: "Success",
-            group,
+            group: group,
         });
     } catch (err) {
         // Log the error and respond with a failure status

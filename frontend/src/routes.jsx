@@ -5,7 +5,9 @@ import Group from './components/groups';
 import CreateGroup from './components/groups/createGroup';
 import ViewGroup from './components/groups/viewGroup';
 import EditGroup from "./components/groups/EditGroup.jsx"
-
+import AddExpense from './components/expense/AddExpense.jsx';
+import { ViewExpense } from './components/expense/ViewExpense.jsx';
+import EditExpense from './components/expense/EditExpense.jsx';
 import configData from "./config.json"
 
 
@@ -24,18 +26,18 @@ export default function Router() {
                     path: configData.CREATE_GROUP_URL,
                     element: <CreateGroup />
                 },
-                // {
-                //     path: configData.ADD_EXPENSE_ROUTER_URL,
-                //     element: <AddExpense />
-                // },
-                // {
-                //     path: configData.EDIT_EXPENSE_ROUTER_URL,
-                //     element: <EditExpense />
-                // },
-                // {
-                //     path: configData.VIEW_EXPENSE_ROUTER_URL,
-                //     element: <ViewExpense />
-                // },
+                {
+                    path: configData.ADD_EXPENSE_ROUTER_URL,
+                    element: <AddExpense />
+                },
+                {
+                    path: configData.EDIT_EXPENSE_ROUTER_URL,
+                    element: <EditExpense />
+                },
+                {
+                    path: configData.VIEW_EXPENSE_ROUTER_URL,
+                    element: <ViewExpense />
+                },
                 {
                     path: configData.USER_GROUPS_URL,
                     element: <Group />
