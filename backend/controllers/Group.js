@@ -497,10 +497,10 @@ This function is used to make the settlements in the gorup
 */
 const settlementInputSchema = z.object({
     groupId: z.string().nonempty("Group ID is required"),
-    settleTo: z.string().nonempty("SettleTo (User ID) is required"),
-    settleFrom: z.string().nonempty("SettleFrom (User ID) is required"),
+    settleTo: z.string().nonempty("SettleTo is required"),
+    settleFrom: z.string().nonempty("SettleFrom is required"),
     settleAmount: z.number().positive("Settlement amount must be greater than 0"),
-    settleDate: z.date().optional(), // as `Date.now` in the model is present
+    settleDate: z.string().optional(),
 });
 
 export const makeSettlement = async (req, res) => {
@@ -513,63 +513,104 @@ export const makeSettlement = async (req, res) => {
         if (!group) {
             return res.status(400).json({ message: "Invalid Group ID" });
         }
-        //check if the person asking for settlement is group member 
+
+        // Check if the person initiating settlement is a group member
         const personSettling = await userBelongToGroupOrNot(req.user.id, validatedData.groupId);
         if (!personSettling) {
             return res.status(403).json({
                 success: false,
-                message: "Unauthorized action. Only the person who is the part of the group can try to settle expense",
-            })
+                message: "Unauthorized action. Only group members can settle expenses.",
+            });
         }
-        //check if settled to settled from are group members
-        const isSettleToGroupMember = group.groupMembers.some(
-            (member) => member.toString() === validatedData.settleTo
-        );
-        const isSettleFromGroupMember = group.groupMembers.some(
-            (member) => member.toString() === validatedData.settleFrom
-        );
 
-        //objectid(not string in mongo) and id string send in request is seen as different types thats why toString() is used
+        // Convert settleDate to a proper Date object
+        const settlementDate = new Date(validatedData.settleDate);
+        if (isNaN(settlementDate.getTime())) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid date format for settleDate.",
+            });
+        }
 
+        // Extract emails from settleTo and settleFrom
+        const emailRegex = /\(([^)]+)\)/; // Match email inside parentheses
+        const settleToEmail = validatedData.settleTo.match(emailRegex)?.[1];
+        const settleFromEmail = validatedData.settleFrom.match(emailRegex)?.[1];
+
+        if (!settleToEmail || !settleFromEmail) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid settleTo or settleFrom format. Unable to extract emails.",
+            });
+        }
+
+        // Find users in the database
+        const settleToUser = await User.findOne({ emailId: settleToEmail });
+        const settleFromUser = await User.findOne({ emailId: settleFromEmail });
+
+        if (!settleToUser || !settleFromUser) {
+            return res.status(400).json({
+                success: false,
+                message: "One or both users involved in the settlement are not found in the database.",
+            });
+        }
+
+        const settleToUserId = settleToUser._id;
+        const settleFromUserId = settleFromUser._id;
+
+        // Check if settleTo and settleFrom are group members
+        const isSettleToGroupMember = await userBelongToGroupOrNot(settleToUserId, validatedData.groupId);
+        const isSettleFromGroupMember = await userBelongToGroupOrNot(settleFromUserId, validatedData.groupId);
 
         if (!isSettleToGroupMember || !isSettleFromGroupMember) {
             return res.status(400).json({
-                message: "Both settleTo and settleFrom must be members of the group",
+                message: "Both settleTo and settleFrom must be members of the group.",
             });
         }
-        //check if the person asking for settlement is settle to or settle from 
-        if (req.user.id !== validatedData.settleTo || req.user.id !== validatedData.settleFrom) {
+
+        // Check if the user initiating settlement is involved
+        if (
+            req.user.id !== settleToUserId.toString() &&
+            req.user.id !== settleFromUserId.toString()
+        ) {
             return res.status(403).json({
                 success: false,
-                message: "Only members involved in the expenses can settle it",
-            })
-
+                message: "Only members involved in the settlement can perform this action.",
+            });
         }
 
-        // Check if the split array exists
+        // Check if the group has split data
         if (!group.split || group.split.length === 0) {
-            return res.status(400).json({ message: "Group has no split data to update" });
+            return res.status(400).json({ message: "Group has no split data to update." });
         }
 
         // Update the split data for settleFrom and settleTo
         const splitArray = group.split.map((split) => {
-            if (split.member.toString() === validatedData.settleFrom) {
+            if (split.member.toString() === settleFromUserId.toString()) {
                 split.amount += validatedData.settleAmount;
                 split.status = split.amount >= 0 ? "owed" : "owes";
             }
-            if (split.member.toString() === validatedData.settleTo) {
+            if (split.member.toString() === settleToUserId.toString()) {
                 split.amount -= validatedData.settleAmount;
                 split.status = split.amount >= 0 ? "owed" : "owes";
             }
             return split;
         });
 
-        // Update the group's split in the database
+        // Save updated group split
         group.split = splitArray;
         await group.save();
 
-        // Create a new settlement entry in the database
-        const newSettlement = await Settlement.create(validatedData);
+        // Create a new settlement entry
+        const payload = {
+            settleTo: settleToUserId,
+            settleFrom: settleFromUserId,
+            settleAmount: validatedData.settleAmount,
+            settleDate: settlementDate,
+            groupId: validatedData.groupId,
+        };
+
+        const newSettlement = await Settlement.create(payload);
 
         // Respond with success
         res.status(200).json({
@@ -583,11 +624,10 @@ export const makeSettlement = async (req, res) => {
             `URL: ${req.originalUrl} | Status: ${err.status || 500} | Message: ${err.message}`
         );
         res.status(err.status || 500).json({
-            message: err.message || "Failed to make settlement",
+            message: err.message || "Failed to make settlement.",
         });
     }
 };
-
 
 
 /*
@@ -761,7 +801,7 @@ return : group settlement detals
 export const groupBalanceSheet = async (req, res) => {
     try {
         // Validate group ID
-        const { groupId } = req.body;
+        const groupId = req.query.id;
         if (!groupId) {
             return res.status(400).json({
                 success: false,
@@ -805,11 +845,37 @@ export const groupBalanceSheet = async (req, res) => {
         // Pass transactions object to splitCalculator to get minimum transactions needed to settle up
         const balanceSheet = minimumTransactions(transactions);
 
+        // Populate settleFrom and settleTo with user details
+        const userIds = new Set();
+        balanceSheet.forEach(([settleFrom, settleTo]) => {
+            userIds.add(settleFrom);
+            userIds.add(settleTo);
+        });
+
+        const users = await User.find({ _id: { $in: Array.from(userIds) } }).select('firstName lastName emailId');
+
+
+        const userMap = users.reduce((map, user) => {
+            map[user._id.toString()] = {
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.emailId,
+            };
+            return map;
+        }, {});
+
+        // Formating the balance sheet with populated user details
+        const populatedBalanceSheet = balanceSheet.map(([settleFrom, settleTo, amount]) => ({
+            settleFrom: userMap[settleFrom] || null,
+            settleTo: userMap[settleTo] || null,
+            amount,
+        }));
+
         // Respond with the calculated balance sheet
         return res.status(200).json({
             success: true,
             message: "Group balance sheet retrieved successfully.",
-            data: balanceSheet,
+            data: populatedBalanceSheet,
         });
     } catch (err) {
         // Log and handle unexpected errors

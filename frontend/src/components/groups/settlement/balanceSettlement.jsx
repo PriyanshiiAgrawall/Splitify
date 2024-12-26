@@ -29,11 +29,12 @@ const BalanceSettlement = ({ currencyType, settleTo, settleFrom, amount, handleC
   const [settleSuccess, setSettleSuccess] = useState(false);
   const params = useParams();
 
-  // Zod schema for validation
+
   const schema = z.object({
     settleTo: z.string().nonempty('Settle to is required'),
     settleFrom: z.string().nonempty('Settle from is required'),
-    settleAmount: z.number()
+    settleAmount: z
+      .number()
       .min(1, 'Minimum amount is 1')
       .max(amount, `Maximum amount is ${amount}`),
     settleDate: z.date().optional(),
@@ -49,8 +50,8 @@ const BalanceSettlement = ({ currencyType, settleTo, settleFrom, amount, handleC
   } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
-      settleTo,
-      settleFrom,
+      settleTo: `${settleTo.firstName} ${settleTo.lastName} (${settleTo.email})`,
+      settleFrom: `${settleFrom.firstName} ${settleFrom.lastName} (${settleFrom.email})`,
       settleAmount: amount,
       settleDate: new Date(),
       groupId: params.groupId,
@@ -61,7 +62,12 @@ const BalanceSettlement = ({ currencyType, settleTo, settleFrom, amount, handleC
   const onSubmit = async (data) => {
     setLoading(true);
     try {
-      const response = await settlementService(data, setAlert, setAlertMessage);
+
+      const payload = {
+        ...data, groupId: params.groupId
+      }
+      console.log(payload)
+      const response = await settlementService(payload, setAlert, setAlertMessage);
       if (response?.data?.status === 'Success') {
         setSettleSuccess(true);
         setReload(true);
@@ -110,6 +116,7 @@ const BalanceSettlement = ({ currencyType, settleTo, settleFrom, amount, handleC
                       label="Settlement To"
                       variant="outlined"
                       disabled
+                      value={`${settleTo.firstName} ${settleTo.lastName} (${settleTo.email})`}
                       {...register('settleTo')}
                       error={!!errors.settleTo}
                       helperText={errors.settleTo?.message}
@@ -121,6 +128,7 @@ const BalanceSettlement = ({ currencyType, settleTo, settleFrom, amount, handleC
                       label="Settlement From"
                       variant="outlined"
                       disabled
+                      value={`${settleFrom.firstName} ${settleFrom.lastName} (${settleFrom.email})`}
                       {...register('settleFrom')}
                       error={!!errors.settleFrom}
                       helperText={errors.settleFrom?.message}

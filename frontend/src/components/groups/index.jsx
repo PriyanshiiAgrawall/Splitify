@@ -31,7 +31,7 @@ export default function Group() {
         getUserGroups();
     }, []);
 
-    // Check if the group is active based on the split array
+    // Check if the group is active based on the split array of the current user
     const checkActive = (split) => {
         if (!split) return false;
         return split.some((entry) => Math.round(entry.amount) !== 0);

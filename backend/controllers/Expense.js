@@ -249,22 +249,14 @@ Accepts: Group ID not null group ID exist in the DB
 
 const editExpenseSchema = z.object({
 
-    id: z.string().refine((id) => mongoose.Types.ObjectId.isValid(id), {
-        message: "Invalid Expense ID",
-    }),
-    groupId: z.string().refine((id) => mongoose.Types.ObjectId.isValid(id), {
-        message: "Invalid Group ID"
-    }),
+    id: z.string().nonempty("expenseId is required"),
+    groupId: z.string().nonempty("group Id is required"),
     expenseName: z.string().nonempty("Expense name is required").optional(),
     expenseAmount: z.number().positive("Expense amount must be a positive number").optional(),
     //non empty cant be used on numbers
 
-    expensePaidBy: z.string().refine((id) => mongoose.Types.ObjectId.isValid(id), {
-        message: "Invalid Owner ID",
-    }).optional(),
-    expenseMembers: z.array(z.string().refine((id) => mongoose.Types.ObjectId.isValid(id), {
-        message: "Invalid Member ID",
-    })).optional(),
+    expensePaidBy: z.string().email("required email").optional(),
+    expenseMembers: z.array(z.string().email("required email")).optional(),
     expenseDate: z.string().refine((date) => !isNaN(new Date(date).getTime()), {
         message: "Invalid date format",
     }).optional(),
@@ -276,12 +268,16 @@ const editExpenseSchema = z.object({
             message: "Invalid expense type. Allowed values are 'Cash', 'Card', or 'Online'.",
         }),
     }).optional(),
+
 });
 
 
 
 export const editExpense = async (req, res) => {
     try {
+        console.log(req.body);
+        const groupId = req.body.groupId;
+
         // Validate the request body
         const validatedExpense = editExpenseSchema.parse(req.body);
 
@@ -311,13 +307,15 @@ export const editExpense = async (req, res) => {
                 message: "Owner can't be fetched, issue with your token",
             });
         }
-        //validate owner is the same person who created the expense
+
+        // Validate the owner is the person who created the expense
         if (oldExpense.expenseCreatedBy.toString() !== ownerID) {
             return res.status(403).json({
                 success: false,
                 message: "Unauthorized action. Only the person who created the expense can edit it.",
             });
         }
+
         // Validate the owner belongs to the group
         const ownerValidation = await userBelongToGroupOrNot(ownerID, validatedExpense.groupId);
         if (!ownerValidation) {
@@ -327,8 +325,17 @@ export const editExpense = async (req, res) => {
             });
         }
 
-        // Validate expense paid by belongs to the group
-        const paidByValidation = await userBelongToGroupOrNot(validatedExpense.expensePaidBy, validatedExpense.groupId);
+        // Validate `expensePaidBy` belongs to the database and the group
+        const user = await User.findOne({ emailId: validatedExpense.expensePaidBy });
+        if (!user) {
+            return res.status(403).json({
+                success: false,
+                message: "The person who paid the expenses doesn't exist in the database",
+            });
+        }
+
+        const paidById = user._id;
+        const paidByValidation = await userBelongToGroupOrNot(paidById, validatedExpense.groupId);
         if (!paidByValidation) {
             return res.status(403).json({
                 success: false,
@@ -336,20 +343,29 @@ export const editExpense = async (req, res) => {
             });
         }
 
-        // Validate all members belong to the group
-        for (const memberId of validatedExpense.expenseMembers) {
-            const memberValidation = await userBelongToGroupOrNot(memberId, validatedExpense.groupId);
+        // Validate all members belong to the group and the database
+        const membersId = [];
+        for (const memberEmail of validatedExpense.expenseMembers) {
+            const member = await User.findOne({ emailId: memberEmail });
+            if (!member) {
+                return res.status(403).json({
+                    success: false,
+                    message: `Member with email ${memberEmail} does not exist in the database`,
+                });
+            }
+            const memberValidation = await userBelongToGroupOrNot(member._id, validatedExpense.groupId);
             if (!memberValidation) {
                 return res.status(403).json({
                     success: false,
-                    message: `Member ${memberId} doesn't belong to the group`,
+                    message: `Member with email ${memberEmail} doesn't belong to the group`,
                 });
             }
+            membersId.push(member._id);
         }
 
         // Calculate the per-member expense
         const expensePerMember = Math.round(
-            (validatedExpense.expenseAmount / validatedExpense.expenseMembers.length + Number.EPSILON) * 100
+            (validatedExpense.expenseAmount / membersId.length + Number.EPSILON) * 100
         ) / 100;
 
         // Clear the old split
@@ -361,7 +377,7 @@ export const editExpense = async (req, res) => {
             req.originalUrl
         );
 
-        if (clearSplitResponse.success === false) {
+        if (!clearSplitResponse.success) {
             return res.status(400).json({
                 success: false,
                 message: `Failed to clear old split: ${clearSplitResponse.message}`,
@@ -377,15 +393,15 @@ export const editExpense = async (req, res) => {
                     expenseName: validatedExpense.expenseName,
                     expenseDescription: validatedExpense.expenseDescription,
                     expenseAmount: validatedExpense.expenseAmount,
-                    expensePaidBy: validatedExpense.expensePaidBy,
-                    expenseMembers: validatedExpense.expenseMembers,
+                    expensePaidBy: paidById,
+                    expenseMembers: membersId,
                     expensePerMember: expensePerMember,
                     expenseType: validatedExpense.expenseType,
                     expenseDate: validatedExpense.expenseDate,
                 },
             }
         );
-        //modifiedCount is a MongoDB property returned by updateOne. It indicates how many documents were modified by the update operation.
+
         if (expenseUpdate.modifiedCount === 0) {
             return res.status(400).json({
                 success: false,
@@ -397,12 +413,12 @@ export const editExpense = async (req, res) => {
         const addSplitResponse = await addSplit(
             validatedExpense.groupId,
             validatedExpense.expenseAmount,
-            validatedExpense.expensePaidBy,
-            validatedExpense.expenseMembers,
+            paidById,
+            membersId,
             req.originalUrl
         );
 
-        if (addSplitResponse.success === false) {
+        if (!addSplitResponse.success) {
             return res.status(400).json({
                 success: false,
                 message: `Failed to update group split: ${addSplitResponse.message}`,
@@ -416,8 +432,9 @@ export const editExpense = async (req, res) => {
             expenseId: validatedExpense.id,
         });
     } catch (err) {
-        logger.error(`URL: ${req.originalUrl} | Status: ${err.status || 500} | Message: ${err.message}`);
+        console.error(`URL: ${req.originalUrl} | Status: ${err.status || 500} | Message: ${err.message}`);
         res.status(err.status || 500).json({
+            success: false,
             message: err.message || "Internal Server Error",
         });
     }
@@ -532,7 +549,7 @@ export const viewExpense = async (req, res) => {
 
 
         //frontend is sending userId 
-        const expenseId = req.query.expenseId;
+        const expenseId = req.query.id;
         //check token decoded id and this is same
         if (!req.user.id) {
             return res.status(400).json({
@@ -544,7 +561,26 @@ export const viewExpense = async (req, res) => {
 
 
         // Fetch the expense record by ID
-        const expense = await Expense.findById(expenseId);
+        const expense = await Expense.findById(expenseId)
+            .populate({
+                path: 'groupId',
+                select: 'groupName groupDescription groupCategory',
+            })
+            .populate({
+                path: 'expenseCreatedBy',
+                select: 'firstName lastName emailId',
+            })
+            .populate({
+                path: 'expensePaidBy',
+                select: 'firstName lastName emailId',
+            })
+            .populate({
+                path: 'expenseMembers',
+                select: 'firstName lastName emailId',
+            });
+
+        console.log(expense);
+
 
         if (!expense) {
             return res.status(404).json({
@@ -598,8 +634,8 @@ Returns: Json with all the expense record and the total expense amount for the g
 
 export const viewGroupExpense = async (req, res) => {
     try {
-        const { id } = req.query;
-        const groupId = id
+        const groupId = req.query.id;
+
         if (!groupId) {
             return res.status(400).json({
                 success: false,
@@ -673,15 +709,26 @@ returns: Expenses
 //TESTED
 export const viewUserExpense = async (req, res) => {
     try {
-        if (!req.user.id) {
+
+        const emailId = req.query.user
+        if (!emailId) {
             return res.status(400).json({
                 success: false,
-                message: `User doesn't exist some issue with token`
+                message: `user id required`
             })
         }
+        const user = await User.findOne({ emailId: emailId });
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: `User doesn't exist in the db`
+            })
+
+        }
+        //not needed but remember
         // Convert the user ID in the decoded payload to an ObjectId
         //objectid cant be invoked without new
-        const userId = new mongoose.Types.ObjectId(req.user.id);
+        const userId = user._id
         const userExpenses = await Expense.find({
             expenseMembers: userId
         }).sort({
@@ -780,7 +827,7 @@ Returns: Total expense per category (for the group as a whole)
 export const groupCategoryExpense = async (req, res) => {
     try {
         // Check if groupId is provided in the request body
-        const groupId = req.body.id
+        const groupId = req.query.id;
         if (!groupId) {
             return res.status(400).json({
                 success: false,
@@ -796,12 +843,12 @@ export const groupCategoryExpense = async (req, res) => {
                 message: "Unauthorized access you dont belong to this group",
             });
         }
-
+        const objectIdGroupId = new mongoose.Types.ObjectId(groupId);
         // Perform aggregation to calculate category-wise expenses
         const categoryExpense = await Expense.aggregate([
             {// Filters the documents in the Expense collection to include only those where the groupId matches the provided group ID.
                 $match: {
-                    groupId: req.body.id,
+                    groupId: objectIdGroupId,
                 },
             },
             {//Groups the filtered documents by their expenseCategory field and calculates the total expense for each category.
@@ -858,7 +905,7 @@ export const groupCategoryExpense = async (req, res) => {
 export const groupMonthlyExpense = async (req, res) => {
     try {
 
-        const { groupId } = req.body.id;
+        const groupId = req.query.id;
 
         if (!groupId) {
             return res.status(400).json({
@@ -875,12 +922,12 @@ export const groupMonthlyExpense = async (req, res) => {
                 message: "Unauthorized access you dont belong to this group",
             });
         }
-
+        const objectIdGroupId = new mongoose.Types.ObjectId(groupId);
         // Aggregate pipeline to calculate monthly expenses
-        const monthlyExpense = await model.Expense.aggregate([
+        const monthlyExpense = await Expense.aggregate([
             {
                 $match: {
-                    groupId: groupId, // Match documents belonging to the provided group ID
+                    groupId: objectIdGroupId, // Match documents belonging to the provided group ID
                 },
             },
             {
@@ -932,26 +979,34 @@ export const groupMonthlyExpense = async (req, res) => {
 
 export const userDailyExpense = async (req, res) => {
     try {
-        const { user: userEmail } = req.body;
+        const userId = req.query.userId;
 
         // Validate input
-        if (!userEmail) {
+        if (!userId) {
             return res.status(400).json({
                 success: false,
-                message: "User email is required",
+                message: "User id is required",
             });
         }
 
+        //checking if user exist in db 
+        const user = User.findById(userId);
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: "User not found in db",
+            });
+        }
         // Define date range (last 1 month)
         const currentDate = new Date();
         const oneMonthAgo = new Date();
         oneMonthAgo.setMonth(currentDate.getMonth() - 1);
-
+        const objectIdUserId = new mongoose.Types.ObjectId(userId);
         // Aggregate pipeline to calculate daily expenses
-        const dailyExpense = await model.Expense.aggregate([
+        const dailyExpense = await Expense.aggregate([
             {
                 $match: {
-                    expenseMembers: userEmail, // Match user email in expenseMembers array
+                    expenseMembers: objectIdUserId,
                     expenseDate: {
                         $gte: oneMonthAgo, // Expenses after one month ago
                         $lte: currentDate, // Expenses up to today
@@ -1012,21 +1067,32 @@ Returns : Expense per month
 */
 export const userMonthlyExpense = async (req, res) => {
     try {
-        const { user: userEmail } = req.body;
+        const userId = req.query.userId;
 
         // Validate input
-        if (!userEmail) {
+        if (!userId) {
             return res.status(400).json({
                 success: false,
-                message: "User email is required",
+                message: "User id is required",
             });
         }
 
+        const user = await User.findById(userId)
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: "User not presentt in db",
+            });
+        }
+
+        // Convert userId to ObjectId
+        const objectIdUserId = new mongoose.Types.ObjectId(userId);
+
         // Aggregate pipeline to calculate monthly expenses
-        const monthlyExpense = await model.Expense.aggregate([
+        const monthlyExpense = await Expense.aggregate([
             {
                 $match: {
-                    expenseMembers: userEmail, // Match user email in expenseMembers array
+                    expenseMembers: objectIdUserId,
                 },
             },
             {
@@ -1078,10 +1144,10 @@ This function is used to retuen the expense spend on each category for a user
 Accepts : emailID
 Returns : Each category total exp (individaul Expense)
 */
-
+//TESTED
 export const userCategoryExpense = async (req, res) => {
     try {
-        const { user: userEmail } = req.body;
+        const userEmail = req.query.user;
 
         // Validate input
         if (!userEmail) {
@@ -1090,12 +1156,21 @@ export const userCategoryExpense = async (req, res) => {
                 message: "User email is required",
             });
         }
+        //finding userId 
+        const user = await User.findOne({ emailId: userEmail })
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "No user found for current email ",
+            });
+        }
 
+        const userId = user._id;
         // Aggregate pipeline to calculate category-wise expenses
-        const categoryExpense = await model.Expense.aggregate([
+        const categoryExpense = await Expense.aggregate([
             {
                 $match: {
-                    expenseMembers: userEmail, // Match user email in expenseMembers array
+                    expenseMembers: userId, // Match user id in expenseMembers array
                 },
             },
             {
@@ -1136,3 +1211,50 @@ export const userCategoryExpense = async (req, res) => {
         });
     }
 };
+
+
+export const groupDailyExpense = async (req, res) => {
+    try {
+        const groupId = req.query.id;
+        const objectIdGroupId = new mongoose.Types.ObjectId(groupId);
+        let dailyExpense = await Expense.aggregate([{
+            $match: {
+                groupId: objectIdGroupId,
+                expenseDate: {
+                    $gte: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+                    $lte: new Date()
+                }
+            }
+        },
+        {
+            $group: {
+                _id: {
+                    date: {
+                        $dayOfMonth: "$expenseDate"
+                    },
+                    month: {
+                        $month: "$expenseDate"
+                    },
+                    year: {
+                        $year: "$expenseDate"
+                    }
+                },
+                amount: {
+                    $sum: "$expenseAmount"
+                }
+            }
+        },
+        { $sort: { "_id.month": 1, "_id.date": 1 } }
+        ])
+        res.status(200).json({
+            status: "success",
+            data: dailyExpense
+        })
+    } catch (err) {
+        logger.error(`URL : ${req.originalUrl} | staus : ${err.status} | message: ${err.message}`)
+        res.status(err.status || 500).json({
+            message: err.message
+        })
+    }
+}
+

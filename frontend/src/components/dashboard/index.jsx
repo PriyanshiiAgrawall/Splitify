@@ -28,7 +28,7 @@ export default function Dashboard() {
         const getUserDetails = async () => {
             setLoading(true);
             const userIdJson = {
-                user: profile.emailId
+                user: profile.user.emailId
             }
             const response_expense = await getUserExpenseService(userIdJson, setAlert, setAlertMessage)
             setUserExp(response_expense.data);

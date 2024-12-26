@@ -10,7 +10,7 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 import 'chart.js/auto'
 import { convertToCurrency, currencyFind } from '../../../utils/helper';
 
-const GroupCategoryGraph = (currencyType) => {
+export const GroupCategoryGraph = (currencyType) => {
     const params = useParams();
     const [alert, setAlert] = useState(false)
     const [alertMessage, setAlertMessage] = useState()
@@ -54,7 +54,8 @@ const GroupCategoryGraph = (currencyType) => {
                     padding: 18
                 },
             },
-        }
+        },
+        maintainAspectRatio: false,
     };
 
 

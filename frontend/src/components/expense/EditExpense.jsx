@@ -29,6 +29,17 @@ import { getGroupDetailsService } from '../../services/groupService';
 import AlertBanner from '../AlertBanner';
 import Loading from '../loading';
 
+const schema = z.object({
+    expenseName: z.string().optional(),
+    expenseDescription: z.string().optional(),
+    expenseAmount: z.number().positive('Amount must be a positive number').optional(),
+    expenseCategory: z.string().optional(),
+    expenseDate: z.date().optional(),
+    expenseMembers: z.array(z.string().email()).optional(),
+    expensePaidBy: z.string().email().optional(),
+    expenseType: z.string().optional(),
+});
+
 export default function EditExpense() {
     const navigate = useNavigate();
     const { expenseId } = useParams();
@@ -38,26 +49,16 @@ export default function EditExpense() {
     const [alert, setAlert] = useState(false);
     const [alertMessage, setAlertMessage] = useState('');
     const [groupMembers, setGroupMembers] = useState([]);
+    const [emailList, setEmailList] = useState([]);
     const [groupCurrency, setGroupCurrency] = useState('');
+    const [groupId, setGroupId] = useState('');
 
-    const schema = z.object({
-        expenseName: z.string().optional(),
-        expenseDescription: z.string().optional(),
-        expenseAmount: z.number().positive('Amount must be a positive number').optional(),
-        expenseCategory: z.string().optional(),
-        expenseType: z.string().optional(),
-        expenseDate: z.date().optional(),
-        expenseMembers: z.array(z.string()).optional(),
-        expensePaidBy: z.string().optional(),
-    });
-
-
-    // React Hook Form Setup
     const {
-        register,
         control,
+        register,
         handleSubmit,
         setValue,
+        watch,
         formState: { errors, isSubmitting },
     } = useForm({
         resolver: zodResolver(schema),
@@ -72,6 +73,8 @@ export default function EditExpense() {
             expenseType: 'Cash',
         },
     });
+
+    const expenseMembers = watch('expenseMembers');
 
     // Fetch Expense Details and Group Members
     useEffect(() => {
@@ -90,13 +93,14 @@ export default function EditExpense() {
                 setValue('expenseAmount', expenseDetails?.expenseAmount || '');
                 setValue('expenseCategory', expenseDetails?.expenseCategory || '');
                 setValue('expenseDate', new Date(expenseDetails?.expenseDate) || new Date());
-                setValue('expenseMembers', expenseDetails?.expenseMembers || []);
-                setValue('expensePaidBy', expenseDetails?.expensePaidBy || '');
+                setValue('expenseMembers', expenseDetails?.expenseMembers.map((m) => m.emailId) || []);
+                setValue('expensePaidBy', expenseDetails?.expensePaidBy.emailId || '');
                 setValue('expenseType', expenseDetails?.expenseType || 'Cash');
 
-                // Set Additional Data
                 setGroupMembers(groupMembers);
+                setEmailList(groupMembers.map((m) => m.emailId).filter((email) => !expenseMembers.includes(email)));
                 setGroupCurrency(expenseDetails?.expenseCurrency);
+                setGroupId(expenseDetails.groupId)
             } catch (error) {
                 setAlert(true);
                 setAlertMessage('Failed to fetch details.');
@@ -107,11 +111,36 @@ export default function EditExpense() {
         fetchDetails();
     }, [expenseId, setValue]);
 
-    // Submit Handler
+    // Add Member Handler
+    const handleAddMember = (selectedMembers) => {
+        const addedMembers = selectedMembers.filter((member) => !expenseMembers.includes(member));
+        setEmailList((prevList) => prevList.filter((email) => !addedMembers.includes(email)));
+        setValue('expenseMembers', selectedMembers);
+    };
+
+    // Delete Member Handler
+    const handleDeleteMember = (member, event) => {
+        event.stopPropagation();
+        const updatedMembers = expenseMembers.filter((item) => item !== member);
+
+        if (updatedMembers.length === 0) {
+            setAlert(true);
+            setAlertMessage('Expense must have at least one member.');
+            setTimeout(() => {
+                setAlert(false);
+                setAlertMessage('');
+            }, 5000);
+            return;
+        }
+
+        setValue('expenseMembers', updatedMembers);
+        setEmailList((prevList) => [...prevList, member]);
+    };
+
     const onSubmit = async (data) => {
         setLoading(true);
         try {
-            if (await editExpenseService({ ...data, id: expenseId }, setAlert, setAlertMessage)) {
+            if (await editExpenseService({ ...data, id: expenseId, groupId: groupId._id, }, setAlert, setAlertMessage)) {
                 navigate(-1);
             }
         } catch (error) {
@@ -221,24 +250,38 @@ export default function EditExpense() {
                             <Grid item xs={12}>
                                 <FormControl fullWidth error={!!errors.expenseMembers}>
                                     <InputLabel>Expense Members</InputLabel>
-                                    <Select
-                                        multiple
-                                        {...register('expenseMembers')}
-                                        input={<OutlinedInput label="Expense Members" />}
-                                        renderValue={(selected) => (
-                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                                {selected.map((value) => (
-                                                    <Chip key={value} label={value} />
+                                    <Controller
+                                        name="expenseMembers"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select
+                                                multiple
+                                                {...field}
+                                                input={<OutlinedInput />}
+                                                value={field.value || []}
+                                                onChange={(event) => handleAddMember(event.target.value)}
+                                                renderValue={(selected) => (
+                                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                                        {selected.map((value) => (
+                                                            <Chip
+                                                                key={value}
+                                                                label={value}
+                                                                onMouseDown={(event) =>
+                                                                    handleDeleteMember(value, event)
+                                                                }
+                                                            />
+                                                        ))}
+                                                    </Box>
+                                                )}
+                                            >
+                                                {emailList.map((email) => (
+                                                    <MenuItem key={email} value={email}>
+                                                        {email}
+                                                    </MenuItem>
                                                 ))}
-                                            </Box>
+                                            </Select>
                                         )}
-                                    >
-                                        {groupMembers.map((member) => (
-                                            <MenuItem key={member} value={member}>
-                                                {member}
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
+                                    />
                                     <FormHelperText>{errors.expenseMembers?.message}</FormHelperText>
                                 </FormControl>
                             </Grid>
@@ -247,8 +290,8 @@ export default function EditExpense() {
                                     <InputLabel>Expense Paid By</InputLabel>
                                     <Select {...register('expensePaidBy')} label="Expense Paid By">
                                         {groupMembers.map((member) => (
-                                            <MenuItem key={member} value={member}>
-                                                {member}
+                                            <MenuItem key={member.emailId} value={member.emailId}>
+                                                {member.emailId}
                                             </MenuItem>
                                         ))}
                                     </Select>

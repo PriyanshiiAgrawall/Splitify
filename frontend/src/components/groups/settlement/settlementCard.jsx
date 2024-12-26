@@ -5,7 +5,6 @@ import useResponsive from "../../theme/hooks/useResponsive";
 import { convertToCurrency, currencyFind } from '../../../utils/helper';
 import BalanceSettlement from "./balanceSettlement";
 import React, { useState } from 'react';
-import configData from '../../../config.json';
 import AvatarReact from 'react-avatar'; // Import react-avatar
 
 const style = {
@@ -18,12 +17,11 @@ const style = {
     p: 4,
     borderRadius: 1
 };
-
-const SettlementCard = ({ mySettle, currencyType }) => {
+const SettlementCard = ({ settleFrom, settleTo, amount, currencyType }) => {
     const xsUp = useResponsive('up', 'sm');
     const [reload, setReload] = useState(false);
     const [open, setOpen] = useState(false);
-
+    console.log(settleFrom)
     const handleOpen = () => setOpen(true);
     const handleClose = () => {
         if (reload) {
@@ -46,22 +44,25 @@ const SettlementCard = ({ mySettle, currencyType }) => {
                 boxShadow: 4,
             }}
         >
-            {/* React Avatar - Fallback to initials */}
+
             <AvatarReact
-                name={mySettle[0]}
+                name={`${settleFrom.firstName} ${settleFrom.lastName}`}
                 size="56"
                 round={true}
                 textSizeRatio={2}
-                color={(theme) => theme.palette['primary'].light} // Optional: Dynamic color
+                color="#E0E0E0" // Background color
             />
 
             <Stack spacing={0}>
                 <Typography variant="body" noWrap sx={{ fontWeight: 600, ...(!xsUp && { fontSize: 12 }) }}>
-                    {mySettle[0].split('@')[0]}
+                    {`${settleFrom.firstName} ${settleFrom.lastName}`}
                 </Typography>
 
                 <Typography variant="body" noWrap sx={{ ...(!xsUp && { fontSize: 12 }) }}>
-                    to <Typography variant="subtitle" sx={{ fontWeight: 600 }}>{mySettle[1].split('@')[0]}</Typography>
+                    to{' '}
+                    <Typography variant="subtitle" sx={{ fontWeight: 600 }}>
+                        {`${settleTo.firstName} ${settleTo.lastName}`}
+                    </Typography>
                 </Typography>
 
                 {!xsUp && (
@@ -84,7 +85,7 @@ const SettlementCard = ({ mySettle, currencyType }) => {
                                 color: (theme) => theme.palette['error'].dark,
                             }}
                         >
-                            {currencyFind(currencyType)} {convertToCurrency(mySettle[2])}
+                            {currencyFind(currencyType)} {convertToCurrency(amount)}
                         </Typography>
                     </>
                 )}
@@ -108,7 +109,7 @@ const SettlementCard = ({ mySettle, currencyType }) => {
                             color: (theme) => theme.palette['error'].dark,
                         }}
                     >
-                        {currencyFind(currencyType)} {convertToCurrency(mySettle[2])}
+                        {currencyFind(currencyType)} {convertToCurrency(amount)}
                     </Typography>
                 </Stack>
             )}
@@ -119,9 +120,9 @@ const SettlementCard = ({ mySettle, currencyType }) => {
                 <Box sx={style} width={xsUp ? '50%' : '90%'}>
                     <BalanceSettlement
                         currencyType={currencyType}
-                        settleTo={mySettle[1]}
-                        settleFrom={mySettle[0]}
-                        amount={mySettle[2]}
+                        settleTo={settleTo}
+                        settleFrom={settleFrom}
+                        amount={amount}
                         handleClose={handleClose}
                         setReload={setReload}
                     />

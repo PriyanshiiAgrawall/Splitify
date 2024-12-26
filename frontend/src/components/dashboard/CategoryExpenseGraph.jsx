@@ -64,7 +64,7 @@ export const CategoryExpenseChart = () => {
         const getGroupCategoryExpense = async () => {
             setLoading(true)
             const userIdJson = {
-                user: profile.emailId
+                user: profile.user.emailId
             }
             const category_exp =
                 await getUserCategoryExpService(userIdJson, setAlert, setAlertMessage)

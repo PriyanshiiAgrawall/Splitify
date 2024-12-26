@@ -1,24 +1,21 @@
-import { Container, Box } from "@mui/material"
-import { useState } from "react"
-import { useEffect } from "react"
-import { useParams } from "react-router-dom"
-import { getGroupDetailsService } from "../../../services/groupService"
-import AlertBanner from "../../AlertBanner"
-import Loading from "../../loading"
-import 'chart.js/auto'
-import { Bar } from "react-chartjs-2"
-import useResponsive from "../../theme/hooks/useResponsive"
-
+import { Container, Box } from "@mui/material";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import { getGroupDetailsService } from "../../../services/groupService";
+import AlertBanner from "../../AlertBanner";
+import Loading from "../../loading";
+import 'chart.js/auto';
+import { Bar } from "react-chartjs-2";
+import useResponsive from "../../theme/hooks/useResponsive";
 
 const UserBalanceChart = () => {
     const params = useParams();
     const mdUp = useResponsive('up', 'md');
-    const [loading, setLoading] = useState(false)
-    const [graphData, setGraphData] = useState([])
-    const [graphLabel, setGraphLabel] = useState([])
-    const [alert, setAlert] = useState(false)
-    const [alertMessage, setAlertMessage] = useState()
-
+    const [loading, setLoading] = useState(false);
+    const [graphData, setGraphData] = useState([]);
+    const [graphLabel, setGraphLabel] = useState([]);
+    const [alert, setAlert] = useState(false);
+    const [alertMessage, setAlertMessage] = useState();
 
     const data = {
         labels: graphLabel,
@@ -30,7 +27,7 @@ const UserBalanceChart = () => {
                 borderColor: 'rgba(255, 99, 132, 1)',
             }
         ]
-    }
+    };
 
     const options = {
         scales: {
@@ -46,44 +43,52 @@ const UserBalanceChart = () => {
                 display: false,
             },
         }
-    }
+    };
 
     useEffect(() => {
         const getGroupDetails = async () => {
-            setLoading(true)
+            setLoading(true);
             const groupIdJson = {
                 id: params.groupId
-            }
-            const response_group = await getGroupDetailsService(groupIdJson, setAlert, setAlertMessage)
-            let split = Object.entries(response_group?.data?.group?.split[0])
-            split.map((mySplit, index) => {
-                if (mySplit[1] < 0) {
-                    if (index === 0) {
-                        setGraphData([Math.abs(mySplit[1])])
-                        setGraphLabel([mySplit[0]])
-                    } else {
-                        setGraphData(current => [...current, Math.abs(mySplit[1])])
-                        setGraphLabel(current => [...current, mySplit[0]])
-                    }
-                }
+            };
+            try {
+                const response_group = await getGroupDetailsService(groupIdJson, setAlert, setAlertMessage);
 
-            })
-            setLoading(false)
-        }
-        getGroupDetails()
-    }, [])
+                if (response_group?.data?.group?.split) {
+                    const splits = response_group.data.group.split;
+
+                    // Filter and map the split data for chart
+                    const filteredSplits = splits.filter(split => split.amount < 0);
+                    const labels = filteredSplits.map(split => `${split.member.firstName} ${split.member.lastName}`);
+                    const data = filteredSplits.map(split => Math.abs(split.amount));
+
+                    setGraphLabel(labels);
+                    setGraphData(data);
+                }
+            } catch (error) {
+                setAlert(true);
+                setAlertMessage("Failed to load group details.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        getGroupDetails();
+    }, [params.groupId]);
 
     return (
         <>
-            {loading ? <Loading /> :
+            {loading ? (
+                <Loading />
+            ) : (
                 <Container sx={{ my: 6 }}>
-                    <AlertBanner showAlert={alert} alertMessage={alertMessage} severity={'error'} />
+                    <AlertBanner showAlert={alert} alertMessage={alertMessage} severity="error" />
                     <Box height={350} my={2}>
                         <Bar data={data} options={options} />
                     </Box>
-                </Container>}
+                </Container>
+            )}
         </>
-    )
-}
+    );
+};
 
-export default UserBalanceChart
+export default UserBalanceChart;

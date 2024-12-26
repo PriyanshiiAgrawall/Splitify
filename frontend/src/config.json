@@ -15,6 +15,8 @@
     "VIEW_EXPENSE_URL": "/dashboard/viewExpense/",
     "VIEW_EXPENSE_ROUTER_URL": "/dashboard/viewExpense/:expenseId",
     "CREATE_GROUP_URL": "/dashboard/createGroup",
+    "SETTLEMENT_URL": "/dashboard/settlement",
+    "SETTLEMENT_ROUTER_URL": "/dashboard/settlement/:groupId",
     "ABOUT_URL": "/about",
     "USER_PROFILE_URL": "/dashboard/userProfile",
     "USER_DELETED_URL": "/userProfile/confirmDelete",

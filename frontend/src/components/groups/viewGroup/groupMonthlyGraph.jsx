@@ -9,7 +9,7 @@ import { Line } from "react-chartjs-2";
 import 'chart.js/auto'
 import { monthNamesMMM } from '../../../utils/helper';
 
-const GroupMonthlyGraph = () => {
+export const GroupMonthlyGraph = () => {
     const params = useParams();
     const [alert, setAlert] = useState(false)
     const [alertMessage, setAlertMessage] = useState()
@@ -20,12 +20,12 @@ const GroupMonthlyGraph = () => {
 
     const toggleMonthlyView = () => {
         setMonthlyView(!montlyView)
-    } 
+    }
 
     const data = {
         labels: montlyView ?
-            monthlyExp?.map(monthly => (monthNamesMMM[monthly._id.month-1])) :
-            dailyExp?.map(daily => (monthNamesMMM[daily._id.month-1] + "-"  + daily._id.date)),
+            monthlyExp?.map(monthly => (monthNamesMMM[monthly._id.month - 1])) :
+            dailyExp?.map(daily => (monthNamesMMM[daily._id.month - 1] + "-" + daily._id.date)),
         datasets: [
             {
                 label: 'Monthly Expenses',
@@ -84,7 +84,7 @@ const GroupMonthlyGraph = () => {
                 <>
                     <Box height={350} mb={5}>
                         <AlertBanner showAlert={alert} alertMessage={alertMessage} severity='error' />
-                        
+
                         <Line data={data} options={options} />
                         <FormGroup>
                             <FormControlLabel control={<Switch defaultChecked onClick={toggleMonthlyView} />} label="Daily view" />

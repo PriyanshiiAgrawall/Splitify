@@ -36,11 +36,16 @@ export default function ViewGroup() {
     const mdUp = useResponsive('up', 'md');
 
     const toggleAllExp = () => {
-        setExpenses(groupExpense?.expense?.slice(0, showCount));
-        if (showCount >= groupExpense?.expense?.length) setShowAllExp(true);
-        setExpFocus(true);
-        showCount += 5;
+        const remainingExpenses = groupExpense.slice(expenses.length, expenses.length + showCount);
+        if (remainingExpenses.length > 0) {
+            setExpenses((prevExpenses) => [...prevExpenses, ...remainingExpenses]);
+        }
+        // Hide button if there are no more expenses to load
+        if (expenses.length + remainingExpenses.length >= groupExpense.length) {
+            setShowAllExp(true);
+        }
     };
+
 
     const toggleExpView = () => {
         setViewSettlement(0);
@@ -58,6 +63,17 @@ export default function ViewGroup() {
         const userSplit = splits?.find((split) => split?.member?.emailId === emailId);
         return userSplit?.amount || 0;
     };
+    const findIfUserNeedsToPay = (splits) => {
+        const userSplit = splits?.find((split) => {
+            return split?.member?.emailId === emailId;
+        })
+        //user needs to pay
+        if (userSplit?.amount < 0) {
+            return true;
+
+        }
+        return false;
+    }
 
     useEffect(() => {
         const getGroupDetails = async () => {
@@ -72,14 +88,11 @@ export default function ViewGroup() {
             if (response_expense?.data?.expenses?.length <= 5 || !response_expense) setShowAllExp(true);
             setTotalAmount(response_expense?.data?.totalAmount)
             console.log("here")
-            console.log(group)
-            console.log(groupExpense)
-            console.log(expenses)
             setLoading(false);
         };
 
         getGroupDetails();
-    }, []);
+    }, [groupId]);
 
     const CategoryStyle = styled('span')(() => ({
         top: 22,
@@ -127,17 +140,29 @@ export default function ViewGroup() {
                             </Box>
                         </Typography>
                         <Stack direction="row" justifyContent="space-between" alignItems="center" mt={1}>
-                            <Typography
-                                variant="subtitle2"
-                                sx={{
-                                    bgcolor: (theme) => theme.palette['warning'].lighter,
-                                    p: 1,
-                                    borderRadius: 1,
-                                    color: (theme) => theme.palette['warning'].darker,
-                                }}
-                            >
-                                Category : &nbsp; {group?.groupCategory}
-                            </Typography>
+                            <Stack direction="row" justifyContent="space-between" alignItems="center" mt={1} spacing={2}>
+                                <Typography
+                                    variant="subtitle2"
+                                    sx={{
+                                        bgcolor: (theme) => theme.palette['warning'].lighter,
+                                        p: 1,
+                                        borderRadius: 1,
+                                        color: (theme) => theme.palette['warning'].darker,
+                                    }}
+                                >
+                                    Category : &nbsp; {group?.groupCategory}
+
+                                </Typography>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    sx={{ ml: 2, display: findIfUserNeedsToPay(group?.split) ? 'inline-flex' : 'none' }}
+                                    component={RouterLink}
+                                    to={dataConfig.SETTLEMENT_ROUTER_URL.replace(':groupId', groupId)}
+                                >
+                                    Settle Up
+                                </Button>
+                            </Stack>
                             <Fab
                                 component={RouterLink}
                                 to={dataConfig.ADD_EXPENSE_URL + group?._id}
@@ -252,10 +277,70 @@ export default function ViewGroup() {
                                     </Typography>
                                 </Box>
                             </Stack>
+
                         </Grid>
+                        <Grid item xs={12} md={6}>
+                            <Box
+                                sx={{
+                                    width: '100%',
+                                    height: { xs: 500, md: 500 },
+                                    bgcolor: 'background.paper',
+                                    borderRadius: 2,
+                                    p: 2,
+                                    boxShadow: 1,
+                                }}
+                            >
+                                <GroupCategoryGraph currencyType={group?.groupCurrency} />
+                            </Box>
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <Box
+                                sx={{
+                                    width: '100%',
+                                    height: { xs: 300, md: 500 },
+                                    bgcolor: 'background.paper',
+                                    borderRadius: 2,
+                                    p: 2,
+                                    boxShadow: 1,
+                                }}
+                            >
+                                <GroupMonthlyGraph />
+                            </Box>
+                        </Grid>
+                        <Grid item xs={15}>
+                            <Typography variant="h5" gutterBottom>
+                                Group Expenses
+                            </Typography>
+                            {expenses.map((expense) => (
+                                <ExpenseCard
+                                    key={expense._id}
+                                    expenseId={expense._id}
+                                    expenseName={expense.expenseName}
+                                    expenseAmount={expense.expenseAmount}
+                                    expensePerMember={expense.expensePerMember}
+                                    expensePaidBy={expense.expensePaidBy.firstName}
+                                    expenseOwner={expense.expenseCreatedBy.firstName}
+                                    expenseDate={expense.expenseDate}
+                                    currencyType={group?.groupCurrency}
+                                />
+                            ))}
+                            {groupExpense.length > expenses.length && (
+                                <Button
+                                    variant="outlined"
+                                    onClick={toggleAllExp}
+                                    sx={{ mt: 2, display: 'block', marginLeft: 'auto', marginRight: 'auto' }}
+                                >
+                                    Load More Expenses
+                                </Button>
+                            )}
+                        </Grid>
+
                     </Grid>
+
                 </>
             )}
+
         </Container>
     );
 }
+
