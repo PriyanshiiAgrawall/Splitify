@@ -238,7 +238,36 @@ Delete User function
 This function is used to delete an existing user in the database 
 Accepts: user email id 
 */
+export const deleteUser = async (req, res) => {
+    try {
+        emailId = req.body;
+        //reuested user belong to db 
+        const user = await User.findOne({ emailId: emailId });
+        if (!emailId) {
+            return res.status(403).json({
+                success: false,
+                message: " Requested user do not belong to the db"
+            })
+        }
+        //validate user reuesting to delete and token decoded user is same 
+        const tokenUserId = req.user.id;
+        if (user._id.toString() !== tokenUserId) {
+            return res.status(403).json({
+                success: false,
+                message: "You are asking for somebody else's account deletion.Unauthorized Action"
+            })
+        }
+        const delete_response = await user.deleteOne({
+            emailId: emailId
+        })
 
+
+
+    }
+    catch (err) {
+
+    }
+}
 
 
 
