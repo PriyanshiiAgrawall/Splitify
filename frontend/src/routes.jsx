@@ -15,6 +15,9 @@ import EditExpense from './components/expense/EditExpense.jsx';
 import configData from "./config.json"
 
 import { GroupSettlementsCall } from './components/groups/settlement/index.jsx';
+import Profile from './components/profile/index.jsx';
+import About from './components/about.jsx';
+import PageUserDeleted from './components/profile/PageUserDeleted.jsx';
 
 
 
@@ -60,12 +63,11 @@ export default function Router() {
                     path: configData.SETTLEMENT_ROUTER_URL,
                     element: <GroupSettlementsCall />
                 },
-                // {path:configData.ABOUT_URL,
-                //   element: <About/>},
-                // {
-                //     path: configData.USER_PROFILE_URL,
-                //     element: <Profile />
-                // }
+
+                {
+                    path: configData.USER_PROFILE_URL,
+                    element: <Profile />
+                }
             ]
         }, {
             path: configData.LOGIN_URL,
@@ -73,8 +75,8 @@ export default function Router() {
             children: [
                 { path: '/', element: <Login /> },
                 { path: configData.REGISTER_URL, element: <Register /> },
-                // {path: configData.USER_DELETED_URL, element: <PageUserDeleted/>},
-                // {path:configData.ABOUT_URL,element: <About/>}
+                { path: configData.USER_DELETED_URL, element: <PageUserDeleted /> },
+                { path: configData.ABOUT_URL, element: <About /> }
             ]
         },
         { path: '*', element: <div>404 - Page Not Found</div> },

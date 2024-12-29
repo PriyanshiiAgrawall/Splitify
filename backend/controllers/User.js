@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import logger from "../utils/logger.js";
 import User from "../models/User.js";
+import Group from "../models/Group.js"
 import { generateToken, validateToken, validateUser } from "../middlewares/apiAuthentication.js"
 
 //zod is defaulty required if need to make some field optional just put optional there
@@ -143,22 +144,18 @@ Returns: user details (ensure password is removed)
 route: 
 */
 //TESTED
-const viewUserSchema = z.object({
-    emailId: z
-        .string()
-        .email("Invalid email format") // Validates email format
-        .nonempty("Email ID is required"), // Ensures it is not empty
-});
+
 export const viewUser = async (req, res) => {
     try {
 
-        // Validate req.body using Zod schema
-        const { emailId } = viewUserSchema.parse(req.body);
+
+        const emailId = req.query.queryParams;
+
         //verifyToken middleware puts decoded token in request named as user now this user has email(payload)
         //verifying wmail of user who's data is wanted is same as inputted email
-        validateUser(req.user.emailId, req.body.emailId)
+        validateUser(req.user.emailId, emailId)
         const user = await User.findOne({
-            emailId: req.body.emailId
+            emailId: emailId
         }, {
             password: 0
         })//this excludes password field from getting fetched in user object
@@ -240,35 +237,75 @@ Accepts: user email id
 */
 export const deleteUser = async (req, res) => {
     try {
-        emailId = req.body;
-        //reuested user belong to db 
-        const user = await User.findOne({ emailId: emailId });
+        const { emailId } = req.body;
+
         if (!emailId) {
-            return res.status(403).json({
+            return res.status(400).json({
                 success: false,
-                message: " Requested user do not belong to the db"
-            })
+                message: "Email ID is required.",
+            });
         }
-        //validate user reuesting to delete and token decoded user is same 
+
+        // Check if the user exists in the database
+        const user = await User.findOne({ emailId });
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Requested user does not belong to the database.",
+            });
+        }
+
+        // Validate if the requesting user is the same as the token decoded user
         const tokenUserId = req.user.id;
         if (user._id.toString() !== tokenUserId) {
             return res.status(403).json({
                 success: false,
-                message: "You are asking for somebody else's account deletion.Unauthorized Action"
-            })
+                message: "Unauthorized action: You cannot delete someone else's account.",
+            });
         }
-        const delete_response = await user.deleteOne({
-            emailId: emailId
-        })
+
+        // Check if the user's settlements are cleared
+        const groups = await Group.find({ groupMembers: user._id });
+
+        for (let group of groups) {
+            for (let split of group.split) {
+                if (split.member.toString() === user._id.toString() && split.amount !== 0) {
+                    return res.status(401).json({
+                        success: false,
+                        message: "Cannot delete user. Outstanding settlements must be resolved first.",
+                    });
+                }
+            }
+        }
+
+        // Delete the user
+        const deleteResponse = await User.deleteOne({ emailId });
+
+        // Remove the user's splits from the groups
+        for (let group of groups) {
+
+            group.split = group.split.filter(split => split.member.toString() !== user._id.toString());
 
 
+            await group.save();
+        }
+        res.status(200).json({
+            success: true,
+            message: "User account deleted successfully.",
+            response: deleteResponse,
+        });
 
+        // Optional: Remove the user's splits from the groups (if required)
+
+    } catch (err) {
+        console.error("Error in deleteUser:", err);
+        res.status(500).json({
+            success: false,
+            message: "An error occurred while deleting the user.",
+            error: err.message,
+        });
     }
-    catch (err) {
-
-    }
-}
-
+};
 
 
 
@@ -278,6 +315,69 @@ This function is used to edit the user present in the database
 Accepts: User data (user emailId can not be changed)
 This function can not be used to change the password of the user 
 */
+
+
+// Define Zod schema for user update validation
+const userUpdateSchema = z.object({
+    emailId: z.string().email(),
+    firstName: z.string().min(1, "First name cannot be empty."),
+    lastName: z.string().min(1, "Last name cannot be empty."),
+});
+
+export const editUser = async (req, res) => {
+    try {
+        // Validate user input using Zod
+        const { emailId, firstName, lastName } = userUpdateSchema.parse(req.body);
+
+        // Check if the logged-in user is the same as the requested user
+        validateUser(req.user.emailId, emailId);
+
+        // Verify if the user exists in the database
+        const userExists = await User.findOne({ emailId: emailId })
+        if (!userExists) {
+            return res.status(403).json({
+                message: "User do not exist in db",
+                success: false
+            })
+        }
+
+        // Update the user's firstName and lastName
+        const updateResponse = await User.updateOne(
+            { emailId },
+            {
+                $set: {
+                    firstName,
+                    lastName,
+                },
+            }
+        );
+
+        // Respond with success
+        res.status(200).json({
+            status: "Success",
+            message: "User update successful",
+            userId: updateResponse,
+        });
+    } catch (err) {
+        // Log the error
+        logger.error(`URL: ${req.originalUrl} | Status: ${err.status || 500} | Message: ${err.message}`);
+
+        // Handle validation errors
+        if (err instanceof z.ZodError) {
+            return res.status(400).json({
+                status: "Failure",
+                message: "Validation error",
+                errors: err.errors,
+            });
+        }
+
+        // Respond with the error
+        res.status(err.status || 500).json({
+            status: "Failure",
+            message: err.message,
+        });
+    }
+};
 
 
 
@@ -293,3 +393,74 @@ validation : old password is correct
              new password meet the requirements 
 */
 
+
+
+const updatePasswordSchema = z.object({
+    emailId: z.string().email({ message: 'Invalid email address.' }),
+    oldPassword: z.string().nonempty({ message: 'Old password is required.' }),
+    newPassword: z
+        .string()
+        .min(8, { message: 'New password must be at least 8 characters long.' }),
+});
+
+export const updatePassword = async (req, res) => {
+    try {
+
+        const { emailId, oldPassword, newPassword } = updatePasswordSchema.parse(req.body);
+
+
+        validateUser(req.user.emailId, emailId);
+
+        // Find the user by email
+        const user = await User.findOne({ emailId });
+        if (!user) {
+            return res.status(404).json({
+                status: 'Failure',
+                message: 'User does not exist.',
+            });
+        }
+
+        // Validate the old password using bcrypt
+        const validCred = await bcrypt.compare(oldPassword, user.password);
+        if (!validCred) {
+            return res.status(400).json({
+                status: 'Failure',
+                message: 'Old password does not match.',
+            });
+        }
+
+        // Hash the new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        // Update the password in the database
+        const updateResponse = await User.updateOne(
+            { emailId },
+            { $set: { password: hashedPassword } }
+        );
+
+
+        return res.status(200).json({
+            status: 'Success',
+            message: 'Password updated successfully.',
+            updateResponse,
+        });
+    } catch (err) {
+
+        logger.error(`URL: ${req.originalUrl} | Status: ${err.status || 500} | Message: ${err.message} | Stack: ${err.stack}`);
+
+
+        if (err instanceof z.ZodError) {
+            return res.status(400).json({
+                status: 'Failure',
+                message: 'Validation error.',
+                errors: err.errors,
+            });
+        }
+
+        return res.status(err.status || 500).json({
+            status: 'Failure',
+            message: err.message || 'An error occurred.',
+        });
+    }
+};

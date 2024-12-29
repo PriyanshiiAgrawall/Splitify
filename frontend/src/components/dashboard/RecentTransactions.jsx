@@ -58,33 +58,30 @@ export const RecentTransactions = () => {
                         borderRadius: 2,
                     }}
                 >
-                    {/* Alert Banner */}
                     <AlertBanner
                         showAlert={alert.show}
                         alertMessage={alert.message}
                         severity="error"
                     />
 
-                    {/* Title */}
                     <Typography variant="h6" p={2}>
                         Your Recent Transactions
                     </Typography>
 
-                    {/* Expense Cards */}
                     {recentExp.map((expense) => (
-                        <ExpenseCard
+                        <Box key={expense._id} sx={{ marginBottom: 2 }}>
+                            <ExpenseCard
+                                expenseId={expense._id}
+                                expenseName={expense.expenseName}
+                                expenseAmount={expense.expenseAmount}
+                                expensePerMember={expense.expensePerMember}
+                                expensePaidBy={expense.expensePaidBy.firstName}
+                                expenseOwner={expense.expenseCreatedBy.firstName}
+                                expenseDate={expense.expenseDate}
+                                currencyType={expense.expenseCurrency}
+                            />
+                        </Box>
 
-
-                            key={expense._id}
-                            expenseId={expense._id}
-                            expenseName={expense.expenseName}
-                            expenseAmount={expense.expenseAmount}
-                            expensePerMember={expense.expensePerMember}
-                            expensePaidBy={expense.expensePaidBy.firstName}
-                            expenseOwner={expense.expenseCreatedBy.firstName}
-                            expenseDate={expense.expenseDate}
-                            currencyType={expense.expenseCurrency}
-                        />
                     ))}
                 </Box>
             )}

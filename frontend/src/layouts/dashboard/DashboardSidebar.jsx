@@ -75,18 +75,18 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
             <AccountStyle>
               {user && (
                 <Avatar
-                  name={`${user?.firstName} ${user?.lastName}`}
-                  email={user?.emailId}
+                  name={`${user?.user?.firstName} ${user?.user?.lastName}`}
+                  email={user?.user?.emailId}
                   round
                   size="40"
                 />
               )}
               <Box sx={{ ml: 2 }}>
                 <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
-                  {user?.firstName} {user?.lastName}
+                  {user?.user?.firstName} {user?.user?.lastName}
                 </Typography>
                 <Typography variant="span" fontSize={12} sx={{ color: 'text.secondary' }}>
-                  {user?.emailId}
+                  {user?.user?.emailId}
                 </Typography>
               </Box>
             </AccountStyle>

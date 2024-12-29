@@ -8,6 +8,7 @@ import User from "../models/User.js"
 import Settlement from "../models/Settlement.js"
 import logger from "../utils/logger.js";
 import minimumTransactions from '../utils/split.js';
+import Expense from "../models/Expense.js"
 import { userBelongToGroupOrNot } from '../utils/validation.js';
 /*
 Create Group Function - This function creates new groups

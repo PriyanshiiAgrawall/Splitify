@@ -6,10 +6,9 @@ import Cookies from 'js-cookie';
 
 
 import useResponsive from '../theme/hooks/useResponsive';
-// import Logo from '../Logo';
 import LoginForm from './LoginForm';
 import Copyright from '../Copyright';
-
+import splitify from "../../assets/splitify.png"
 import configData from '../../config.json'
 
 const RootStyle = styled('div')(({
@@ -95,7 +94,7 @@ export default function Login() {
                         <Typography variant="h3" sx={{ px: 5, mt: 10, mb: 5 }}>
                             Hi, Welcome Back
                         </Typography>
-                        {/* <img src="/static/illustrations/illustration_login.png" alt="login" /> */}
+                        <img src={splitify} alt="login" />
                     </SectionStyle>
                 )}
                 <Container maxWidth="sm">

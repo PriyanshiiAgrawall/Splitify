@@ -26,7 +26,7 @@ export const SummaryCards = ({ userTotalExp }) => {
                     <Box>
                         <Typography variant="caption2"
                             sx={{ color: (theme) => theme.palette['primary'].dark }}>
-                            Total
+                            Your Total Expenditure
                         </Typography>
                         <Typography variant="h5"
                             sx={{ color: (theme) => theme.palette['primary'].darker }}>

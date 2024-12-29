@@ -1,34 +1,35 @@
 import { useRef, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-// @mui
+
 import { alpha } from '@mui/material/styles';
 import { Box, Divider, Typography, Stack, MenuItem, IconButton } from '@mui/material';
 
-// React Avatar
 import Avatar from 'react-avatar';
-// components
-import MenuPopover from '../../components/MenuPopover';
 
+import MenuPopover from '../../components/MenuPopover';
+import Iconify from '../../components/Iconify';
 import { logout } from '../../services/authentication';
 
 import configData from '../../config.json';
-// ----------------------------------------------------------------------
+
+
+
 
 const MENU_OPTIONS = [
   {
     label: 'Home',
-    icon: 'eva:home-fill',
+    icon: <Iconify icon="eva:home-fill" width={24} height={24} sx={{ color: 'black' }} />,
     linkTo: configData.DASHBOARD_URL,
   },
   {
     label: 'Profile',
-    icon: 'eva:person-fill',
+    icon: <Iconify icon="eva:person-fill" width={24} height={24} sx={{ color: 'black' }} />,
     linkTo: configData.USER_PROFILE_URL,
   },
   {
-    label: 'Settings',
-    icon: 'eva:settings-2-fill',
-    linkTo: '#',
+    label: 'Groups',
+    icon: <Iconify icon="clarity:group-solid" width={24} height={24} sx={{ color: 'black' }} />,
+    linkTo: configData.USER_GROUPS_URL,
   },
 ];
 
@@ -75,8 +76,8 @@ export default function AccountPopover() {
       >
         {user ? (
           <Avatar
-            name={`${user?.firstName} ${user?.lastName}`}
-            email={user?.emailId}
+            name={`${user?.user?.firstName} ${user?.user?.lastName}`}
+            email={user?.user?.emailId}
             size="40"
             round={true}
           />
@@ -101,10 +102,10 @@ export default function AccountPopover() {
       >
         <Box sx={{ my: 1.5, px: 2.5 }}>
           <Typography variant="subtitle2" noWrap>
-            {user?.firstName} {user?.lastName}
+            {user?.user?.firstName} {user?.user?.lastName}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-            {user?.emailId}
+            {user?.user?.emailId}
           </Typography>
         </Box>
 
@@ -112,11 +113,24 @@ export default function AccountPopover() {
 
         <Stack sx={{ p: 1 }}>
           {MENU_OPTIONS.map((option) => (
-            <MenuItem key={option.label} to={option.linkTo} component={RouterLink} onClick={handleClose}>
+            <MenuItem
+              key={option.label}
+              to={option.linkTo}
+              component={RouterLink}
+              onClick={handleClose}
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
               {option.label}
+              <Iconify icon={option.icon} width={24} height={24} />
             </MenuItem>
           ))}
         </Stack>
+
+
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 

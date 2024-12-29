@@ -70,7 +70,7 @@ export default function ExpenseCard({ expenseId, expenseName, expenseAmount, exp
 
     const apiDeleteCall = async () => {
         await deleteExpenseService({ id: expenseId })
-        // window.location.reload()
+        window.location.reload()
         deleteConfirmClose()
     }
 

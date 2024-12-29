@@ -1,19 +1,16 @@
-import { Container, Stack, Typography, Box, Avatar, Grid, Link, TextField, Button, ModalManager, Modal, Snackbar, Alert } from '@mui/material'
-import gravatarUrl from 'gravatar-url'
-import Iconify from '../Iconify'
-import useResponsive from '../theme/hooks/useResponsive'
-import UserDetails from './userDetails'
-import { useState } from 'react'
-import { deleteUser, getUser } from '../../services/authentication'
-import ChangePassword from './changePassword'
-import { useEffect } from 'react'
-import Loading from '../loading'
-import EditForm from './editUser'
-import AlertBanner from '../AlertBanner'
-import configData from '../../config.json'
+import { Container, Stack, Typography, Box, Grid, Link, Button, Modal, Snackbar } from '@mui/material';
+import Avatar from 'react-avatar';
+import Iconify from '../Iconify';
+import useResponsive from '../theme/hooks/useResponsive';
+import UserDetails from './userDetails';
+import { useState, useEffect } from 'react';
+import { deleteUser, getUser } from '../../services/authentication';
+import ChangePassword from './changePassword';
+import EditForm from './editUser';
+import AlertBanner from '../AlertBanner';
+import Loading from '../loading';
 
-
-const profile = JSON.parse(localStorage.getItem('profile'))
+const profile = JSON.parse(localStorage.getItem('profile'));
 
 const modelStyle = {
   position: 'absolute',
@@ -23,63 +20,65 @@ const modelStyle = {
   bgcolor: 'background.paper',
   boxShadow: 24,
   p: 4,
-  borderRadius: 1
+  borderRadius: 1,
 };
-
 
 export default function Profile() {
   const mdUp = useResponsive('up', 'md');
-  const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState(" ");
+  const [alertMessage, setAlertMessage] = useState('');
 
-  const [changePass, setChangePass] = useState(false)
-  const [editUser, setEditUser] = useState(false)
-
+  const [changePass, setChangePass] = useState(false);
+  const [editUser, setEditUser] = useState(false);
+  const [alertSeverity, setAlertSeverity] = useState('success');
 
   const handleAlertClose = () => {
-    setShowAlert(false)
-  }
+    setShowAlert(false);
+  };
 
   const deleteConfirmOpen = () => {
-    setDeleteConfirm(true)
-  }
+    setDeleteConfirm(true);
+  };
   const deleteConfirmClose = () => {
-    setDeleteConfirm(false)
-  }
+    setDeleteConfirm(false);
+  };
   const showPassUpdate = () => {
-    setChangePass(true)
-  }
+    setChangePass(true);
+  };
   const hidePassUpdate = () => {
-    setChangePass(false)
-  }
+    setChangePass(false);
+  };
   const showEditUser = () => {
-    setEditUser(true)
-  }
+    setEditUser(true);
+  };
   const hideEditUser = () => {
-    setEditUser(false)
-  }
+    setEditUser(false);
+  };
 
   const apiDeleteCall = async () => {
-    await deleteUser(user, setShowAlert, setAlertMessage)
-  }
+    await deleteUser(user, setShowAlert, setAlertMessage, setAlertSeverity);
+  };
 
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState([]);
 
   useEffect(() => {
     const getUserDetails = async () => {
-      setLoading(true)
-      const response = await getUser(profile, setShowAlert, setAlertMessage)
-      setUser(response.data.user)
-      setLoading(false)
-    }
-    getUserDetails()
+      setLoading(true);
+      const response = await getUser(profile.user.emailId, setShowAlert, setAlertMessage);
+      setUser(response.data.user);
+      setLoading(false);
+    };
+    getUserDetails();
   }, []);
+
   return (
     <Container>
-      {loading ? <Loading /> :
+      {loading ? (
+        <Loading />
+      ) : (
         <>
           <Typography variant="h5" component="h1">
             User Profile
@@ -87,40 +86,59 @@ export default function Profile() {
 
           <Grid container spacing={3} p={4}>
             <Grid item xs={12} md={4} align="center">
-              {user.emailId &&
-                <Avatar src={gravatarUrl(user.emailId, { size: 350, default: configData.USER_DEFAULT_LOGO_URL })} alt="photoURL" sx={{ width: 240, height: 240 }} />}
+              <Avatar
+                name={`${user.firstName} ${user.lastName}`}
+                round={true}
+                size="120"
+                textSizeRatio={2}
+              />
               <Typography variant="body2" align="center" sx={{ mt: 3, color: 'text.secondary' }}>
-                *The profile picture is taken from Gravitar{' '} <br />
-                <Link variant="subtitle3" component={'a'} href="https://en.gravatar.com/support/faq/" target="_blank">
-                  Know how to set gravitar profile pic!
-                </Link>
+                *Your profile picture is generated based on your name. Update your details to see changes!
               </Typography>
             </Grid>
             <Grid item xs={12} md={6} sx={{ mt: 4 }}>
               {changePass && (
-                <ChangePassword hidePassUpdate={hidePassUpdate} emailId={user.emailId}
-                  showHomeAlert={setShowAlert} homeAlertMessage={setAlertMessage}
+                <ChangePassword
+                  hidePassUpdate={hidePassUpdate}
+                  emailId={user.emailId}
+                  showHomeAlert={setShowAlert}
+                  homeAlertMessage={setAlertMessage}
                 />
-
               )}
 
-              {editUser &&
-                <EditForm hideEditUser={hideEditUser} emailId={user.emailId} firstName={user.firstName} lastName={user.lastName}
-                  showHomeAlert={setShowAlert} homeAlertMessage={setAlertMessage}
+              {editUser && (
+                <EditForm
+                  hideEditUser={hideEditUser}
+                  emailId={user.emailId}
+                  firstName={user.firstName}
+                  lastName={user.lastName}
+                  showHomeAlert={setShowAlert}
+                  homeAlertMessage={setAlertMessage}
                 />
-              }
+              )}
 
-              {(!editUser && !changePass) &&
-                (<>
-                  <AlertBanner showAlert={showAlert} alertMessage={alertMessage} severity='success' autoHideDuration={5000}
-                    onCloseHandle={handleAlertClose} />
+              {!editUser && !changePass && (
+                <>
+                  <AlertBanner
+                    showAlert={showAlert}
+                    alertMessage={alertMessage}
+                    severity={alertSeverity}
+                    autoHideDuration={5000}
+                    onCloseHandle={handleAlertClose}
+                  />
 
-                  <UserDetails firstName={user.firstName} lastName={user.lastName} emailId={user.emailId} />
-                  <Grid container spacing={3} mt={1} justifyContent={'center'}>
-                    <Grid item xs={11} md={3}
-                      order={{ xs: 3, md: 1 }}
-                    >
-                      <Button startIcon={<Iconify icon='fluent:delete-dismiss-24-filled' />} variant="outlined" color="error" sx={{ width: "100%" }}
+                  <UserDetails
+                    firstName={user.firstName}
+                    lastName={user.lastName}
+                    emailId={user.emailId}
+                  />
+                  <Grid container spacing={3} mt={1} justifyContent="center">
+                    <Grid item xs={11} md={3} order={{ xs: 3, md: 1 }}>
+                      <Button
+                        startIcon={<Iconify icon="fluent:delete-dismiss-24-filled" />}
+                        variant="outlined"
+                        color="error"
+                        sx={{ width: '100%' }}
                         onClick={deleteConfirmOpen}
                       >
                         Delete
@@ -136,15 +154,23 @@ export default function Profile() {
                             Confirm user deletion
                           </Typography>
                           <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-                            Are you sure you want to delte the user account?
+                            Are you sure you want to delete the user account?
                           </Typography>
-                          <Stack mt={2} spacing={2} direction={'row'}>
-                            <Button startIcon={<Iconify icon='fluent:delete-dismiss-24-filled' />} variant="outlined" color="error" sx={{ width: '100%' }}
+                          <Stack mt={2} spacing={2} direction="row">
+                            <Button
+                              startIcon={<Iconify icon="fluent:delete-dismiss-24-filled" />}
+                              variant="outlined"
+                              color="error"
+                              sx={{ width: '100%' }}
                               onClick={apiDeleteCall}
                             >
                               Delete Account
                             </Button>
-                            <Button startIcon={<Iconify icon='material-symbols:cancel' />} variant="outlined" color="primary" sx={{ width: '100%' }}
+                            <Button
+                              startIcon={<Iconify icon="material-symbols:cancel" />}
+                              variant="outlined"
+                              color="primary"
+                              sx={{ width: '100%' }}
                               onClick={deleteConfirmClose}
                             >
                               Cancel
@@ -153,19 +179,22 @@ export default function Profile() {
                         </Box>
                       </Modal>
                     </Grid>
-                    <Grid item xs={11} md={5}
-                      order={{ xs: 2, md: 2 }}
-                    >
-                      <Button startIcon={<Iconify icon='mdi:form-textbox-password' />} variant="outlined" color="warning" sx={{ width: "100%" }}
+                    <Grid item xs={11} md={5} order={{ xs: 2, md: 2 }}>
+                      <Button
+                        startIcon={<Iconify icon="mdi:form-textbox-password" />}
+                        variant="outlined"
+                        color="warning"
+                        sx={{ width: '100%' }}
                         onClick={showPassUpdate}
                       >
                         Change Password
                       </Button>
                     </Grid>
-                    <Grid item xs={11} md={4}
-                      order={{ xs: 1, md: 3 }}
-                    >
-                      <Button startIcon={<Iconify icon='clarity:edit-solid' />} variant="outlined" sx={{ width: "100%" }}
+                    <Grid item xs={11} md={4} order={{ xs: 1, md: 3 }}>
+                      <Button
+                        startIcon={<Iconify icon="clarity:edit-solid" />}
+                        variant="outlined"
+                        sx={{ width: '100%' }}
                         onClick={showEditUser}
                       >
                         Edit Details
@@ -173,12 +202,11 @@ export default function Profile() {
                     </Grid>
                   </Grid>
                 </>
-                )}
+              )}
             </Grid>
           </Grid>
         </>
-      }
-
+      )}
     </Container>
-  )
+  );
 }

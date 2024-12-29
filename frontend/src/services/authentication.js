@@ -75,16 +75,18 @@ export const getUser = async (formData, setShowAlert, setAlertMessage) => {
     }
 }
 
-export const deleteUser = async (data, setShowAlert, setAlertMessage) => {
+export const deleteUser = async (data, setShowAlert, setAlertMessage, setAlertSeverity) => {
     try {
         const response = await api.deleteUser(data)
         localStorage.removeItem("profile")
-        //remove token from cookie
         window.location.href = configData.USER_DELETED_URL
     } catch (err) {
         setShowAlert(true)
+        setAlertSeverity('error');
         err.response.status === 400 || err.response.status === 401
             ? setAlertMessage(err.response.data.message) : setAlertMessage("Oops! Something went worng")
+
+
         return false
     }
 }

@@ -4,7 +4,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import { Card, Link, Container, Typography, Stack, Box } from '@mui/material';
 
-
+import splitify from "../../assets/splitify.png"
 
 // hooks
 import useResponsive from "../theme/hooks/useResponsive"
@@ -79,7 +79,7 @@ export default function Register() {
                     <Typography variant="h3" sx={{ px: 5, mt: 10, mb: 5 }}>
                         Save time, share costs, and settle effortlessly with SplitBill!
                     </Typography>
-                    {/* <img src="/static/illustrations/illustration_register.png" alt="login" /> */}
+                    <img src={splitify} alt="login" />
                 </SectionStyle>
             )}
             <Container maxWidth="sm">

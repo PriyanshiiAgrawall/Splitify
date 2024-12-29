@@ -40,42 +40,8 @@ export const deleteExpenseService = async (data, setAlert, setAlertMessage) => {
     }
 }
 
-/*
-Delete Expense function
-This function is used to deted the expense added to the group
-Accepts: Group ID not null group ID exist in the DB 
-         Expense ID not null expense ID exist in the DB for the perticular group
-*/
-export const deleteExpense = async (req, res) => {
-    try {
-        var expense = await model.Expense.findOne({
-            _id: req.body.id
-        })
-        if (!expense) {
-            var err = new Error("Invalid Expense Id")
-            err.status = 400
-            throw err
-        }
-        var deleteExp = await model.Expense.deleteOne({
-            _id: req.body.id
-        })
 
-        //Clearing split value for the deleted expense from group table
-        await gorupDAO.clearSplit(expense.groupId, expense.expenseAmount, expense.expenseOwner, expense.expenseMembers)
 
-        res.status(200).json({
-            status: "Success",
-            message: "Expense is deleted",
-            response: deleteExp
-        })
-    } catch (err) {
-
-        res.status(err.status || 500).json({
-            message: err.message
-        })
-    }
-}
-//TESTED
 export const getRecentUserExpService = async (data, setAlert, setAlertMessage) => {
     try {
         console.log("reached here");

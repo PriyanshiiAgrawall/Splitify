@@ -34,11 +34,21 @@ const BalanceSettlement = ({ currencyType, settleTo, settleFrom, amount, handleC
     settleTo: z.string().nonempty('Settle to is required'),
     settleFrom: z.string().nonempty('Settle from is required'),
     settleAmount: z
-      .number()
-      .min(1, 'Minimum amount is 1')
-      .max(amount, `Maximum amount is ${amount}`),
+      .string()
+      .nonempty('Settle amount is required')
+      .refine(
+        (value) => {
+          const parsedValue = parseFloat(value);
+          return !isNaN(parsedValue) && parsedValue >= 1 && parsedValue <= amount;
+        },
+        {
+          message: `Amount must be between 1 and ${amount}`,
+        }
+      )
+      .transform((value) => parseFloat(value)), // Convert to number after validation
     settleDate: z.date().optional(),
   });
+
 
   // React Hook Form setup
   const {
@@ -183,7 +193,7 @@ const BalanceSettlement = ({ currencyType, settleTo, settleFrom, amount, handleC
                     <TextField
                       fullWidth
                       label="Settlement Amount"
-                      type="number"
+                      type="text"
                       variant="outlined"
                       InputProps={{
                         startAdornment: (

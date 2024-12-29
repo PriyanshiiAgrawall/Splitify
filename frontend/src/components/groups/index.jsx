@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { getUserGroupsService } from "../../services/groupService";
 import Iconify from "../Iconify";
 import Loading from "../loading";
-import GroupCards from "./groupCards";
+import GroupCards from "./GroupCards";
 import { Link as RouterLink } from 'react-router-dom';
 import dataConfig from '../../config.json';
 
@@ -71,6 +71,7 @@ export default function Group() {
                                     sx={{ textDecoration: 'none' }}
                                 >
                                     <GroupCards
+                                        groupId={group?._id}
                                         title={group?.groupName}
                                         description={group?.groupDescription}
                                         groupMembers={group?.groupMembers?.map((member) => member.emailId) || []}

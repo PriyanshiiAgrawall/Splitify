@@ -1,7 +1,7 @@
 import { Box, Button, Grid, Typography } from "@mui/material";
 import { Link as RouterLink } from 'react-router-dom';
 import configData from '../../config.json';
-import dashboardWelcomeIllustration from '../../assets/dashboardWelcomeIllustration.png'; // Import the image
+import dashboardWelcomeIllustration from '../../assets/dashboardWelcomeIllustration.png';
 
 export const WelcomeMessage = () => {
     return (

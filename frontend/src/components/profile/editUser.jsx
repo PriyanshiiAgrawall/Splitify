@@ -1,102 +1,143 @@
-import * as Yup from 'yup';
 import { useState } from 'react';
-import { useFormik, Form, FormikProvider } from 'formik';
-// material
-import {  Stack,  TextField, IconButton, InputAdornment,  Snackbar, Alert, Grid, Button } from '@mui/material';
-import { LoadingButton } from '@mui/lab';
-// component
-import Iconify from '../Iconify';
-import { editUser} from '../../services/auth';
+import { useForm, Controller } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 
-import useResponsive from '../../theme/hooks/useResponsive';
+import { Stack, TextField, Grid, Button } from '@mui/material';
+import { LoadingButton } from '@mui/lab';
+
+import Iconify from '../Iconify';
 import PropTypes from 'prop-types';
 import AlertBanner from '../AlertBanner';
 
-// ----------------------------------------------------------------------
+import { editUser } from '../../services/authentication'; //implement this 
+import useResponsive from '../theme/hooks/useResponsive';
 
-EditForm.prototype = {
-    hideEditUser: PropTypes.func,
-    emailId: PropTypes.string,
-    firstName: PropTypes.string,
-    lastName: PropTypes.string
-}
 
-export default function EditForm({hideEditUser, emailId, firstName, lastName, showHomeAlert, homeAlertMessage}) {
+EditForm.propTypes = {
+  hideEditUser: PropTypes.func,
+  emailId: PropTypes.string,
+  firstName: PropTypes.string,
+  lastName: PropTypes.string,
+  showHomeAlert: PropTypes.func,
+  homeAlertMessage: PropTypes.string,
+};
+
+export default function EditForm({ hideEditUser, emailId, firstName, lastName, showHomeAlert, homeAlertMessage }) {
   const smUp = useResponsive('up', 'sm');
 
   const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState(" ");
+  const [alertMessage, setAlertMessage] = useState('');
 
-
-  const EditSchema = Yup.object().shape({
-    firstName: Yup.string().required('First Name is required')
+  const EditSchema = z.object({
+    firstName: z.string().nonempty('First Name is required'),
+    lastName: z.string().nonempty('Last Name is required'),
   });
 
-  const formik = useFormik({
-    initialValues: {
-      emailId: emailId,
-      firstName: firstName,
-      lastName: lastName,
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    defaultValues: {
+      emailId,
+      firstName,
+      lastName,
     },
-    validationSchema: EditSchema,
-    onSubmit: async () => {
-      //User Edit Service call - Upon success user is redirected to dashboard 
-      //Edit fail snackbar displays error
-      const update_response = await editUser(values, setShowAlert, setAlertMessage, showHomeAlert, homeAlertMessage)
-      {update_response && 
-        hideEditUser()    
+    resolver: zodResolver(EditSchema),
+  });
+
+  // Handle form submission
+  const onSubmit = async (data) => {
+    try {
+      console.log(data);
+      const payload = {
+        ...data, emailId: emailId
+      }
+      const updateResponse = await editUser(payload, setShowAlert, setAlertMessage, showHomeAlert, homeAlertMessage);
+      if (updateResponse) {
+        hideEditUser();
+      }
+    } catch (error) {
+      setShowAlert(true);
+      setAlertMessage('Failed to update user.');
     }
-    },
-  });
-
-  const { errors, touched, values, isSubmitting, handleSubmit, getFieldProps } = formik;
-
+  };
 
   return (
     <>
-        <FormikProvider value={formik}>
-        <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
-          <Stack spacing={3}>
-            <AlertBanner showAlert={showAlert} alertMessage = {alertMessage} severity='error'/>
-            <Stack spacing={3} direction="row"
-            alignItems="center" justifyContent="space-between"
-            >
-            <TextField
+      <form autoComplete="off" noValidate onSubmit={handleSubmit(onSubmit)}>
+        <Stack spacing={3}>
+          <AlertBanner showAlert={showAlert} alertMessage={alertMessage} severity="error" />
+          <Stack
+            spacing={3}
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            {/* First Name */}
+            <Controller
               name="firstName"
-              fullWidth
-              type="text"
-              label="First Name"
-              {...getFieldProps('firstName')}
-              error={Boolean(touched.firstName && errors.firstName)}
-              helperText={touched.firstName && errors.firstName} />
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  type="text"
+                  label="First Name"
+                  error={Boolean(errors.firstName)}
+                  helperText={errors.firstName?.message}
+                />
+              )}
+            />
 
-              <TextField
+            {/* Last Name */}
+            <Controller
               name="lastName"
-              fullWidth
-              type="text"
-              label="Last Name"
-              {...getFieldProps('lastName')}
-              error={Boolean(touched.lastName && errors.lastName)}
-              helperText={touched.lastName && errors.lastName} />
-            </Stack>
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  type="text"
+                  label="Last Name"
+                  error={Boolean(errors.lastName)}
+                  helperText={errors.lastName?.message}
+                />
+              )}
+            />
           </Stack>
-          <Grid container spacing={2} mt={2} justifyContent={'center'}> 
-        <Grid item md={6} xs={11}>     
-        <Button startIcon={<Iconify icon='material-symbols:cancel'/>} size="large" onClick={hideEditUser} variant="outlined" color={'error'}
-        sx={{width: '100%'}}
-        >
-          Cancel
-        </Button>
-        </Grid>
-        <Grid item md={6} xs={11}>     
-        <LoadingButton startIcon={<Iconify icon='teenyicons:tick-circle-solid'/>}fullWidth size="large" type='submit' variant="outlined"  loading={isSubmitting}>
-          Update
-        </LoadingButton>
-        </Grid>       
-        </Grid>       
+        </Stack>
 
-          
-        </Form>
-      </FormikProvider></>
+        {/* Action Buttons */}
+        <Grid container spacing={2} mt={2} justifyContent="center">
+          <Grid item md={6} xs={11}>
+            <Button
+              startIcon={<Iconify icon="material-symbols:cancel" />}
+              size="large"
+              onClick={hideEditUser}
+              variant="outlined"
+              color="error"
+              sx={{ width: '100%' }}
+            >
+              Cancel
+            </Button>
+          </Grid>
+          <Grid item md={6} xs={11}>
+            <LoadingButton
+              startIcon={<Iconify icon="teenyicons:tick-circle-solid" />}
+              fullWidth
+              size="large"
+              type="submit"
+              variant="outlined"
+              loading={isSubmitting}
+            >
+              Update
+            </LoadingButton>
+          </Grid>
+        </Grid>
+      </form>
+    </>
   );
 }

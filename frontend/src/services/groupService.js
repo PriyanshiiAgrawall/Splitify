@@ -92,6 +92,18 @@ export const settlementService = async (data, setAlert, setAlertMessage) => {
         return settle_details
     } catch (err) {
         setAlert(true)
+        err.response.status === 400 || err.response.status === 401 || err.response.status === 403
+            ? setAlertMessage(err.response.data.message) : setAlertMessage("Oops! Something went worng")
+        return false
+    }
+}
+
+export const groupDeleteService = async (data, setShowAlert, setAlertMessage) => {
+    try {
+        const settle_details = await api.deleteGroup(data)
+        return settle_details
+    } catch (err) {
+        setAlert(true)
         err.response.status === 400 || err.response.status === 401
             ? setAlertMessage(err.response.data.message) : setAlertMessage("Oops! Something went worng")
         return false

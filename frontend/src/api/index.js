@@ -57,13 +57,118 @@ export const register = (formData) => API.post('/api/users/v1/register', formDat
 
 //USER ROUTES
 
-// export const deleteUser = (formData) => API.delete('/api/users/v1/deleteuser', { headers: puttingTokenInHeader.headers, data: formData })
 
-// export const updatePassword = (formData) => API.post('/api/users/v1/updatePassword', formData, puttingTokenInHeader)
+export const deleteUser = async (formData) => {
+    try {
+        console.log("Sending API Request with payload:", formData);
+        console.log("Access Token:", profile?.accessToken);
 
-export const getUser = (formData) => API.post('/api/users/v1/viewuser', formData, puttingTokenInHeader)
+        const response = await API.delete('/api/users/v1/deleteUser', {
+            headers: {
+                Authorization: `Bearer ${profile?.accessToken}`,
+            },
+            data: formData,
+        });
 
-// export const editUser = (formData) => API.post('/api/users/v1/edit', formData, puttingTokenInHeader)
+        console.log("API Response:", response.data);
+        return response;
+    } catch (error) {
+        console.error("Error in deleteUser API call:", error.response || error.message);
+
+        if (error.response) {
+            console.error("Status:", error.response.status);
+            console.error("Data:", error.response.data);
+            console.error("Headers:", error.response.headers);
+        }
+
+        throw error;
+    }
+};
+
+export const getUser = async (queryParams) => {
+    try {
+
+        console.log(profile.accessToken);
+        queryParams = { queryParams }
+        console.log(queryParams)
+        const response = await API.get('/api/users/v1/viewUser', {
+            headers: {
+                'Authorization': `Bearer ${profile.accessToken}`
+            },
+            params: queryParams
+        });
+
+        console.log("API Response:", response.data);
+        return response;
+    } catch (error) {
+        console.error("Error in getRecentUserExp API call:", error.response || error.message);
+
+        if (error.response) {
+
+            console.error("Status:", error.response.status);
+            console.error("Data:", error.response.data);
+            console.error("Headers:", error.response.headers);
+        }
+        throw error;
+    }
+};
+
+
+
+export const updatePassword = async (formData) => {
+    try {
+
+        console.log("Sending API Request with payload:", formData);
+        console.log(profile.accessToken);
+        const response = await API.post('/api/users/v1/updatePassword', formData, {
+            headers: {
+                'Authorization': `Bearer ${profile.accessToken}`,
+            },
+        });
+        console.log("API Response:", response.data);
+        return response;
+    } catch (error) {
+        console.error("Error in addExpense API call:", error.response || error.message);
+
+        if (error.response) {
+
+            console.error("Status:", error.response.status);
+            console.error("Data:", error.response.data);
+            console.error("Headers:", error.response.headers);
+        }
+        throw error;
+    }
+};
+
+
+
+export const editUser = async (formData) => {
+    try {
+
+        console.log("Sending API Request with payload:", formData);
+        console.log(formData)
+        console.log(profile.accessToken);
+        const response = await API.post('/api/users/v1/editUser', formData, {
+            headers: {
+                'Authorization': `Bearer ${profile.accessToken}`,
+            },
+        });
+        console.log("API Response:", response.data);
+        return response;
+    } catch (error) {
+        console.error("Error in addExpense API call:", error.response || error.message);
+
+        if (error.response) {
+
+            console.error("Status:", error.response.status);
+            console.error("Data:", error.response.data);
+            console.error("Headers:", error.response.headers);
+        }
+        throw error;
+    }
+};
+
+
 
 
 
@@ -252,6 +357,36 @@ export const makeSettle = async (formData) => {
         throw error;
     }
 };
+
+export const deleteGroup = async (formData) => {
+    try {
+        console.log("Sending API Request with payload:", formData);
+        console.log("Access Token:", profile?.accessToken);
+
+        const response = await API.delete('/api/groups/v1/deletegroup', {
+            headers: {
+                Authorization: `Bearer ${profile?.accessToken}`,
+            },
+            data: formData,
+        });
+
+        console.log("API Response:", response.data);
+        return response;
+    } catch (error) {
+        console.error("Error in deleteUser API call:", error.response || error.message);
+
+        if (error.response) {
+            console.error("Status:", error.response.status);
+            console.error("Data:", error.response.data);
+            console.error("Headers:", error.response.headers);
+        }
+
+        throw error;
+    }
+};
+
+
+
 //EXPENSES ROUTES
 
 
@@ -335,8 +470,34 @@ export const editExpense = async (formData) => {
     }
 };
 
+export const deleteExpense = async (formData) => {
+    try {
+        console.log("Sending API Request with payload:", formData);
+        console.log("Access Token:", profile?.accessToken);
 
-export const deleteExpense = (formData) => API.delete('/api/expense/v1/deleteexpense', { headers: puttingTokenInHeader.headers, data: formData })
+        const response = await API.delete('/api/expense/v1/deleteexpense', {
+            headers: {
+                Authorization: `Bearer ${profile?.accessToken}`,
+            },
+            data: formData,
+        });
+
+        console.log("API Response:", response.data);
+        return response;
+    } catch (error) {
+        console.error("Error in deleteUser API call:", error.response || error.message);
+
+        if (error.response) {
+            console.error("Status:", error.response.status);
+            console.error("Data:", error.response.data);
+            console.error("Headers:", error.response.headers);
+        }
+
+        throw error;
+    }
+};
+
+
 
 export const getGroupCategoryExp = async (queryParams) => {
     try {
