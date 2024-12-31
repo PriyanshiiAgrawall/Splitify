@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 const Url = process.env.URL;
 export const dbConnect = async () => {
     try {
-        console.log(Url);
+
         await mongoose.connect(Url, {
             useNewUrlParser: true,
             useUnifiedTopology: true,

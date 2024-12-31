@@ -109,7 +109,7 @@ export default function EditGroup() {
     const handleDeleteMember = (member, event) => {
 
         event.stopPropagation();
-        console.log(`Removing member: ${member}`);
+
         const updatedMembers = groupMembers.filter((item) => item !== member);
 
         if (updatedMembers.length === 0) {
@@ -130,7 +130,7 @@ export default function EditGroup() {
 
     const handleAddMember = (selectedMembers) => {
         // Find newly added members and remove them from the dropdown
-        console.log(selectedMembers)
+
         const addedMembers = selectedMembers.filter((member) => !groupMembers.includes(member));
         setEmailList((prevList) => prevList.filter((email) => !addedMembers.includes(email)));
 

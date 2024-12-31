@@ -275,7 +275,6 @@ const editExpenseSchema = z.object({
 
 export const editExpense = async (req, res) => {
     try {
-        console.log(req.body);
         const groupId = req.body.groupId;
 
         // Validate the request body
@@ -579,7 +578,6 @@ export const viewExpense = async (req, res) => {
                 select: 'firstName lastName emailId',
             });
 
-        console.log(expense);
 
 
         if (!expense) {

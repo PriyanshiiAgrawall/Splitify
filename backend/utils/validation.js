@@ -32,7 +32,7 @@ export const userBelongToGroupOrNot = async (userId, groupId) => {
         groupMembers: 1,
         _id: 0
     })
-    console.log(groupMembersObject);
+
     //this query returns an object 
     // {
     // groupMembersObject: [member1,member2,member3]

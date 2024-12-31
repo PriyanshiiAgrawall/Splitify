@@ -10,7 +10,7 @@ import Iconify from '../Iconify';
 import PropTypes from 'prop-types';
 import AlertBanner from '../AlertBanner';
 
-import { editUser } from '../../services/authentication'; //implement this 
+import { editUser } from '../../services/authentication';
 import useResponsive from '../theme/hooks/useResponsive';
 
 
@@ -51,14 +51,28 @@ export default function EditForm({ hideEditUser, emailId, firstName, lastName, s
   // Handle form submission
   const onSubmit = async (data) => {
     try {
-      console.log(data);
+
       const payload = {
         ...data, emailId: emailId
       }
       const updateResponse = await editUser(payload, setShowAlert, setAlertMessage, showHomeAlert, homeAlertMessage);
       if (updateResponse) {
+
+        const updatedProfile = {
+          ...JSON.parse(localStorage.getItem('profile')),
+          user: {
+            ...JSON.parse(localStorage.getItem('profile')).user,
+            firstName: data.firstName,
+            lastName: data.lastName,
+          },
+        };
+        localStorage.setItem('profile', JSON.stringify(updatedProfile));
+
+
         hideEditUser();
+        window.location.reload();
       }
+
     } catch (error) {
       setShowAlert(true);
       setAlertMessage('Failed to update user.');

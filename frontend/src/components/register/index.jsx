@@ -77,7 +77,7 @@ export default function Register() {
             {mdUp && (
                 <SectionStyle>
                     <Typography variant="h3" sx={{ px: 5, mt: 10, mb: 5 }}>
-                        Save time, share costs, and settle effortlessly with SplitBill!
+                        Save time, share costs, and settle effortlessly with Splitify!
                     </Typography>
                     <img src={splitify} alt="login" />
                 </SectionStyle>

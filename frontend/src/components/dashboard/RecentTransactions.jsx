@@ -15,20 +15,20 @@ export const RecentTransactions = () => {
     useEffect(() => {
         const fetchRecentExpenses = async () => {
             setLoading(true);
-            console.log(profile)
+
             try {
-                console.log("reached1")
+
                 const userPayloadHasUserId = {
 
                     userId: profile.user._id,
                 };
-                console.log("reached2")
+
                 // Fetch data from service
                 const response = await getRecentUserExpService(userPayloadHasUserId, setAlert, setAlertMessage);
-                console.log("reached3")
-                console.log(response)
+
+
                 if (response?.data?.expenses) {
-                    console.log(response.data.expenses)
+
                     setRecentExp(response.data.expenses);
                 } else {
                     throw new Error('Failed to fetch recent expenses');

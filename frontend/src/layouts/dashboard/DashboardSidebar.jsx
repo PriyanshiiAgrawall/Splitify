@@ -1,24 +1,23 @@
 import PropTypes from 'prop-types';
 import { useEffect } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
-// material
+
 import { styled } from '@mui/material/styles';
 import { Box, Link, Button, Drawer, Typography, Stack } from '@mui/material';
-import Avatar from 'react-avatar'; // Use react-avatar instead of gravatar-url
+import Avatar from 'react-avatar';
 
-// hooks
+
 import useResponsive from '../../components/theme/hooks/useResponsive';
-// components
+
 import Logo from '../../components/Logo';
 import Scrollbar from '../../components/Scrollbar';
 import NavSection from '../../components/NavSection';
-//
+
 import navConfig from './NavConfig.jsx';
 import Copyright from '../../components/Copyright';
 
 import dataConfig from '../../config.json';
 
-// ----------------------------------------------------------------------
 
 const DRAWER_WIDTH = 280;
 
@@ -37,7 +36,6 @@ const AccountStyle = styled('div')(({ theme }) => ({
   backgroundColor: theme.palette.primary['lighter'],
 }));
 
-// ----------------------------------------------------------------------
 
 DashboardSidebar.propTypes = {
   isOpenSidebar: PropTypes.bool,

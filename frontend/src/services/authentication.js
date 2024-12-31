@@ -6,7 +6,6 @@ export const login = async (formData, setAlertMessage, setShowAlert) => {
 
         const { data } = await api.loginIn(formData)
 
-        console.log(data);
         const cookies = document.cookie;
         console.log("Cookies:", cookies);
 
@@ -17,7 +16,6 @@ export const login = async (formData, setAlertMessage, setShowAlert) => {
         console.log("Profile to save in localStorage:", profile);
         //backend sends user obj and token and we save it in local storage
         localStorage.setItem("profile", JSON.stringify(profile))
-        console.log("Profile successfully saved in localStorage");
         // window.location.href = configData.DASHBOARD_URL
         return data
     } catch (err) {

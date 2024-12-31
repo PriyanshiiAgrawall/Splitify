@@ -69,10 +69,10 @@ export default function Login() {
         const cookieToken = Cookies.get('token'); // Replace 'token' with the actual cookie name
         console.log("User Token:", cookieToken);
         if (user.accessToken && cookieToken) {
-            console.log("Redirecting to dashboard...");
+
             window.location.href = configData.DASHBOARD_URL;
         } else {
-            console.log("No token found in cookies or user.accessToken missing.");
+            console.error("No token found in cookies or user.accessToken missing.");
         }
     }
     return (
@@ -100,7 +100,7 @@ export default function Login() {
                 <Container maxWidth="sm">
                     <ContentStyle>
                         <Typography variant="h4" gutterBottom>
-                            Sign in to SplitApp!
+                            Sign in to Splitify!
                         </Typography>
 
                         <Typography sx={{ color: 'text.secondary', mb: 5 }}>Enter your details below.</Typography>

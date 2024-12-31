@@ -21,7 +21,7 @@ const SettlementCard = ({ settleFrom, settleTo, amount, currencyType }) => {
     const xsUp = useResponsive('up', 'sm');
     const [reload, setReload] = useState(false);
     const [open, setOpen] = useState(false);
-    console.log(settleFrom)
+
     const handleOpen = () => setOpen(true);
     const handleClose = () => {
         if (reload) {

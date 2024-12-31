@@ -87,7 +87,7 @@ export default function ViewGroup() {
             response_expense?.data?.expenses && setExpenses(response_expense?.data?.expenses?.slice(0, 5));
             if (response_expense?.data?.expenses?.length <= 5 || !response_expense) setShowAllExp(true);
             setTotalAmount(response_expense?.data?.totalAmount)
-            console.log("here")
+
             setLoading(false);
         };
 

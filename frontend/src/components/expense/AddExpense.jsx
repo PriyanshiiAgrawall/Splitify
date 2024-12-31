@@ -134,7 +134,7 @@ export default function AddExpense() {
                 expenseOwner: currentUser,
             };
             const response = await addExpenseService(payload);
-            console.log(response)
+
             if (response.status === 200) {
                 navigate(`${configData.VIEW_GROUP_URL}${groupId}`);
             }

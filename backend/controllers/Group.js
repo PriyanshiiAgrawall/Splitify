@@ -47,7 +47,7 @@ export const createGroup = async (req, res) => {
         //in validateToken middleware we put decoded token in req.user so from there fetching email of owner
         const groupOwnerId = req.user.id;
         const groupOwnerEmail = req.user.emailId;
-        console.log(groupOwnerEmail);
+
         //check if groupowner exists in db 
         const ownerExists = await User.findById(groupOwnerId);
         if (!ownerExists) {
@@ -126,7 +126,7 @@ export const viewGroup = async (req, res) => {
     try {
         const { id } = req.query; // Extract group ID from the params
         const groupId = id
-        console.log(groupId);
+
         // validate groupid is given
         if (!groupId) {
             return res.status(400).json({

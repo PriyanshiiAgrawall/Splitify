@@ -68,7 +68,7 @@ export default function ChangePassword({ hidePassUpdate, emailId, showHomeAlert,
 
   const onSubmit = async (data) => {
     try {
-      console.log(data);
+
       const payload = {
         ...data,
         emailId: emailId

@@ -26,12 +26,12 @@ export default function PageUserDeleted() {
             </Typography>
 
             <Typography sx={{ color: 'text.secondary' }}>
-              Thank you for using SplitApp! <br />
+              Thank you for using Splitify! <br />
             </Typography>
           </Box>
           <Box
             component="img"
-            src="/static/illustrations/illustration_avatar.png"
+            src=""
             sx={{ height: 260, mx: 'auto', my: { xs: 5, sm: 10 } }}
           />
         </Stack>

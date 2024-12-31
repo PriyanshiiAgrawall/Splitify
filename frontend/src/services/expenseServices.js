@@ -16,8 +16,7 @@ export const addExpenseService = async (data, setAlert, setAlertMessage) => {
 
 export const getUserExpenseService = async (data, setAlert, setAlertMessage) => {
     try {
-        console.log("reached");
-        console.log("Payload received in getRecentUserExpService:", data);
+
         const response = await api.getUserExpense(data)
         return response
     } catch (err) {
@@ -44,9 +43,9 @@ export const deleteExpenseService = async (data, setAlert, setAlertMessage) => {
 
 export const getRecentUserExpService = async (data, setAlert, setAlertMessage) => {
     try {
-        console.log("reached here");
+
         return await api.getRecentUserExp(data)
-        console.log("reached here too ");
+
     } catch (err) {
         setAlert(true)
         err.response.status === 400 || err.response.status === 401
@@ -107,7 +106,6 @@ export const getUserDailyExpService = async (data, setAlert, setAlertMessage) =>
 
 export const getUserMonthlyExpService = async (userId, setAlert, setAlertMessage) => {
     try {
-        console.log(userId);
         return await api.getUserMonthlyExp(userId)
 
     } catch (err) {

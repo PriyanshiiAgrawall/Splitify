@@ -41,28 +41,41 @@ const puttingTokenInHeader = {
 
 
 
-//this is backend url to which we are sending form data
+//USER ROUTES
+
 export const loginIn = async (formData) => {
     try {
         const response = await API.post('/api/users/v1/login', formData);
         return response;
     } catch (error) {
         console.error("Error in loginIn API call:", error);
+        if (error.response) {
+            console.error("Status:", error.response.status);
+            console.error("Data:", error.response.data);
+            console.error("Headers:", error.response.headers);
+        }
         throw error;
     }
 };
 
 
-export const register = (formData) => API.post('/api/users/v1/register', formData)
-
-//USER ROUTES
-
+export const register = async (formData) => {
+    try {
+        const response = await API.post('/api/users/v1/register', formData);
+        return response;
+    } catch (error) {
+        console.error("Error in Register API call:", error);
+        if (error.response) {
+            console.error("Status:", error.response.status);
+            console.error("Data:", error.response.data);
+            console.error("Headers:", error.response.headers);
+        }
+        throw error;
+    }
+};
 
 export const deleteUser = async (formData) => {
     try {
-        console.log("Sending API Request with payload:", formData);
-        console.log("Access Token:", profile?.accessToken);
-
         const response = await API.delete('/api/users/v1/deleteUser', {
             headers: {
                 Authorization: `Bearer ${profile?.accessToken}`,
@@ -70,7 +83,6 @@ export const deleteUser = async (formData) => {
             data: formData,
         });
 
-        console.log("API Response:", response.data);
         return response;
     } catch (error) {
         console.error("Error in deleteUser API call:", error.response || error.message);
@@ -87,24 +99,18 @@ export const deleteUser = async (formData) => {
 
 export const getUser = async (queryParams) => {
     try {
-
-        console.log(profile.accessToken);
         queryParams = { queryParams }
-        console.log(queryParams)
+
         const response = await API.get('/api/users/v1/viewUser', {
             headers: {
                 'Authorization': `Bearer ${profile.accessToken}`
             },
             params: queryParams
         });
-
-        console.log("API Response:", response.data);
         return response;
     } catch (error) {
-        console.error("Error in getRecentUserExp API call:", error.response || error.message);
-
+        console.error("Error in getUser API call:", error.response || error.message);
         if (error.response) {
-
             console.error("Status:", error.response.status);
             console.error("Data:", error.response.data);
             console.error("Headers:", error.response.headers);
@@ -113,25 +119,16 @@ export const getUser = async (queryParams) => {
     }
 };
 
-
-
 export const updatePassword = async (formData) => {
     try {
-
-        console.log("Sending API Request with payload:", formData);
-        console.log(profile.accessToken);
         const response = await API.post('/api/users/v1/updatePassword', formData, {
             headers: {
                 'Authorization': `Bearer ${profile.accessToken}`,
             },
         });
-        console.log("API Response:", response.data);
         return response;
     } catch (error) {
-        console.error("Error in addExpense API call:", error.response || error.message);
-
-        if (error.response) {
-
+        console.error("Error in updatePassword API call:", error.response || error.message); if (error.response) {
             console.error("Status:", error.response.status);
             console.error("Data:", error.response.data);
             console.error("Headers:", error.response.headers);
@@ -140,23 +137,16 @@ export const updatePassword = async (formData) => {
     }
 };
 
-
-
 export const editUser = async (formData) => {
     try {
-
-        console.log("Sending API Request with payload:", formData);
-        console.log(formData)
-        console.log(profile.accessToken);
         const response = await API.post('/api/users/v1/editUser', formData, {
             headers: {
                 'Authorization': `Bearer ${profile.accessToken}`,
             },
         });
-        console.log("API Response:", response.data);
         return response;
     } catch (error) {
-        console.error("Error in addExpense API call:", error.response || error.message);
+        console.error("Error in editUser API call:", error.response || error.message);
 
         if (error.response) {
 
@@ -168,25 +158,18 @@ export const editUser = async (formData) => {
     }
 };
 
-
-
-
-
-
 export const getEmailList = async () => {
     try {
 
-        console.log(profile.accessToken);
         const response = await API.get('/api/users/v1/fetchAllRegisteredEmails', {
             headers: {
                 'Authorization': `Bearer ${profile.accessToken}`
             }
         });
 
-        console.log("API Response:", response.data);
         return response;
     } catch (error) {
-        console.error("Error in getRecentUserExp API call:", error.response || error.message);
+        console.error("Error in getEmailList API call:", error.response || error.message);
 
         if (error.response) {
 
@@ -197,27 +180,24 @@ export const getEmailList = async () => {
         throw error;
     }
 };
+
+
+
 //GROUP ROUTES
-
-
-
 
 export const getUserGroups = async (userId) => {
     try {
         // Use queryParams directly in the params
-        console.log("Sending API Request with params:", { userId });
-        console.log(profile.accessToken);
         const response = await API.get('/api/groups/v1/findusergroups', {
             headers: {
                 'Authorization': `Bearer ${profile.accessToken}`
             },
-            params: { userId }, //userId is send here
+            params: { userId },
         });
 
-        console.log("API Response:", response.data);
         return response;
     } catch (error) {
-        console.error("Error in getRecentUserExp API call:", error.response || error.message);
+        console.error("Error in getUserGroups API call:", error.response || error.message);
 
         if (error.response) {
 
@@ -232,17 +212,14 @@ export const getUserGroups = async (userId) => {
 export const createGroup = async (formData) => {
     try {
 
-        console.log("Sending API Request with payload:", formData);
-        console.log(profile.accessToken);
         const response = await API.post('/api/groups/v1/creategroup', formData, {
             headers: {
                 'Authorization': `Bearer ${profile.accessToken}`,
             },
         });
-        console.log("API Response:", response.data);
         return response;
     } catch (error) {
-        console.error("Error in addExpense API call:", error.response || error.message);
+        console.error("Error in createGroup API call:", error.response || error.message);
 
         if (error.response) {
 
@@ -257,18 +234,15 @@ export const createGroup = async (formData) => {
 
 export const editGroup = async (formData) => {
     try {
-
-        console.log("Sending API Request with payload:", formData);
-        console.log(profile.accessToken);
         const response = await API.post('/api/groups/v1/editgroup', formData, {
             headers: {
                 'Authorization': `Bearer ${profile.accessToken}`,
             },
         });
-        console.log("API Response:", response.data);
+
         return response;
     } catch (error) {
-        console.error("Error in addExpense API call:", error.response || error.message);
+        console.error("Error in editGroup API call:", error.response || error.message);
 
         if (error.response) {
 
@@ -284,8 +258,7 @@ export const editGroup = async (formData) => {
 export const getGroupDetails = async (queryParams) => {
     try {
         // Use queryParams directly in the params
-        console.log("Sending API Request with params:1234", queryParams);
-        console.log(profile.accessToken);
+
         const response = await API.get('/api/groups/v1/viewgroup', {
             headers: {
                 'Authorization': `Bearer ${profile.accessToken}` // Ensure token is directly set
@@ -293,61 +266,55 @@ export const getGroupDetails = async (queryParams) => {
             params: queryParams, // Query parameters
         });
 
-        console.log("API Response:", response.data);
-        return response; // Return the response directly
+
+        return response;
     } catch (error) {
-        console.error("Error in getRecentUserExp API call:", error.response || error.message);
+        console.error("Error in getGroupDetails API call:", error.response || error.message);
 
         if (error.response) {
-            // Log details for better debugging
             console.error("Status:", error.response.status);
             console.error("Data:", error.response.data);
             console.error("Headers:", error.response.headers);
         }
-        throw error; // Rethrow the error for the caller to handle
+        throw error;
     }
 };
 
 
 export const getSettle = async (queryParams) => {
     try {
-        // Use queryParams directly in the params
-        console.log("Sending API Request with params", queryParams);
-        console.log(profile.accessToken);
+
         const response = await API.get('/api/groups/v1/groupBalanceSheet', {
             headers: {
-                'Authorization': `Bearer ${profile.accessToken}` // Ensure token is directly set
+                'Authorization': `Bearer ${profile.accessToken}`
             },
-            params: queryParams, // Query parameters
+            params: queryParams,
         });
 
-        console.log("API Response:", response.data);
-        return response; // Return the response directly
+        return response;
     } catch (error) {
-        console.error("Error in getRecentUserExp API call:", error.response || error.message);
+        console.error("Error in getSettle API call:", error.response || error.message);
 
         if (error.response) {
-            // Log details for better debugging
+
             console.error("Status:", error.response.status);
             console.error("Data:", error.response.data);
             console.error("Headers:", error.response.headers);
         }
-        throw error; // Rethrow the error for the caller to handle
+        throw error;
     }
 };
 export const makeSettle = async (formData) => {
     try {
-        console.log("Sending API Request with payload:", formData);
-        console.log(profile.accessToken);
         const response = await API.post('/api/groups/v1/makeSettlement', formData, {
             headers: {
                 'Authorization': `Bearer ${profile.accessToken}`,
             },
         });
-        console.log("API Response:", response.data);
+
         return response;
     } catch (error) {
-        console.error("Error in addExpense API call:", error.response || error.message);
+        console.error("Error in makeSettle API call:", error.response || error.message);
 
         if (error.response) {
             console.error("Status:", error.response.status);
@@ -360,9 +327,6 @@ export const makeSettle = async (formData) => {
 
 export const deleteGroup = async (formData) => {
     try {
-        console.log("Sending API Request with payload:", formData);
-        console.log("Access Token:", profile?.accessToken);
-
         const response = await API.delete('/api/groups/v1/deletegroup', {
             headers: {
                 Authorization: `Bearer ${profile?.accessToken}`,
@@ -370,10 +334,9 @@ export const deleteGroup = async (formData) => {
             data: formData,
         });
 
-        console.log("API Response:", response.data);
         return response;
     } catch (error) {
-        console.error("Error in deleteUser API call:", error.response || error.message);
+        console.error("Error in deleteGroup API call:", error.response || error.message);
 
         if (error.response) {
             console.error("Status:", error.response.status);
@@ -389,45 +352,35 @@ export const deleteGroup = async (formData) => {
 
 //EXPENSES ROUTES
 
-
-
 export const getGroupExpense = async (queryParams) => {
     try {
-        // Use queryParams directly in the params
-        console.log("Sending API Request with params:1234", queryParams);
-        console.log(profile.accessToken);
         const response = await API.get('/api/expense/v1/viewgroupexpense', {
             headers: {
                 'Authorization': `Bearer ${profile.accessToken}`
             },
-            params: queryParams, // Query parameters
+            params: queryParams,
         });
-
-        console.log("API Response:", response.data);
-        return response; // Return the response directly
+        return response;
     } catch (error) {
         console.error("Error in getRecentUserExp API call:", error.response || error.message);
 
         if (error.response) {
-            // Log details for better debugging
+
             console.error("Status:", error.response.status);
             console.error("Data:", error.response.data);
             console.error("Headers:", error.response.headers);
         }
-        throw error; // Rethrow the error for the caller to handle
+        throw error;
     }
 };
 
 export const addExpense = async (formData) => {
     try {
-        console.log("Sending API Request with payload:", formData);
-        console.log(profile.accessToken);
         const response = await API.post('/api/expense/v1/addexpense', formData, {
             headers: {
                 'Authorization': `Bearer ${profile.accessToken}`,
             },
         });
-        console.log("API Response:", response.data);
         return response;
     } catch (error) {
         console.error("Error in addExpense API call:", error.response || error.message);
@@ -443,49 +396,35 @@ export const addExpense = async (formData) => {
 
 export const editExpense = async (formData) => {
     try {
-        // Log the payload being sent for debugging
-        console.log("Sending API Request with payload:", formData);
-        console.log(profile.accessToken);
-
-        // Make the POST request to the backend
         const response = await API.post('/api/expense/v1/editexpense', formData, {
             headers: {
-                'Authorization': `Bearer ${profile.accessToken}`, // Attach token to headers
+                'Authorization': `Bearer ${profile.accessToken}`,
             },
         });
-
-        // Log the API response for debugging
-        console.log("API Response:", response.data);
-        return response; // Return the response directly
+        return response;
     } catch (error) {
         console.error("Error in editExpense API call:", error.response || error.message);
-
         if (error.response) {
-            // Log details for better debugging
+
             console.error("Status:", error.response.status);
             console.error("Data:", error.response.data);
             console.error("Headers:", error.response.headers);
         }
-        throw error; // Rethrow the error for the caller to handle
+        throw error;
     }
 };
 
 export const deleteExpense = async (formData) => {
     try {
-        console.log("Sending API Request with payload:", formData);
-        console.log("Access Token:", profile?.accessToken);
-
         const response = await API.delete('/api/expense/v1/deleteexpense', {
             headers: {
                 Authorization: `Bearer ${profile?.accessToken}`,
             },
             data: formData,
         });
-
-        console.log("API Response:", response.data);
         return response;
     } catch (error) {
-        console.error("Error in deleteUser API call:", error.response || error.message);
+        console.error("Error in deleteExpense API call:", error.response || error.message);
 
         if (error.response) {
             console.error("Status:", error.response.status);
@@ -501,83 +440,64 @@ export const deleteExpense = async (formData) => {
 
 export const getGroupCategoryExp = async (queryParams) => {
     try {
-        // Use queryParams directly in the params
-        console.log("Sending API Request with params:1234", queryParams);
-        console.log(profile.accessToken);
         const response = await API.get('/api/expense/v1/groupCategoryExpense', {
             headers: {
                 'Authorization': `Bearer ${profile.accessToken}`
             },
-            params: queryParams, // Query parameters
+            params: queryParams,
         });
-
-        console.log("API Response:", response.data);
-        return response; // Return the response directly
+        return response;
     } catch (error) {
         console.error("Error in getGroupCategoryExp API call:", error.response || error.message);
 
         if (error.response) {
-            // Log details for better debugging
             console.error("Status:", error.response.status);
             console.error("Data:", error.response.data);
             console.error("Headers:", error.response.headers);
         }
-        throw error; // Rethrow the error for the caller to handle
+        throw error;
     }
 };
 
 export const getGroupMonthlyExp = async (queryParams) => {
     try {
-        // Use queryParams directly in the params
-        console.log("Sending API Request with params:1234", queryParams);
-        console.log(profile.accessToken);
         const response = await API.get('/api/expense/v1/groupMonthlyExpense', {
             headers: {
                 'Authorization': `Bearer ${profile.accessToken}`
             },
-            params: queryParams, // Query parameters
+            params: queryParams,
         });
-
-        console.log("API Response:", response.data);
-        return response; // Return the response directly
+        return response;
     } catch (error) {
-        console.error("Error in getUserCategoryExp API call:", error.response || error.message);
+        console.error("Error in getUserMonthlyExp API call:", error.response || error.message);
 
         if (error.response) {
-            // Log details for better debugging
             console.error("Status:", error.response.status);
             console.error("Data:", error.response.data);
             console.error("Headers:", error.response.headers);
         }
-        throw error; // Rethrow the error for the caller to handle
+        throw error;
     }
 };
 
 
 export const getGroupDailyExp = async (queryParams) => {
     try {
-        // Use queryParams directly in the params
-        console.log("Sending API Request with params:1234", queryParams);
-        console.log(profile.accessToken);
         const response = await API.get('/api/expense/v1/groupDailyExpense', {
             headers: {
                 'Authorization': `Bearer ${profile.accessToken}`
             },
-            params: queryParams, // Query parameters
+            params: queryParams,
         });
-
-        console.log("API Response:", response.data);
-        return response; // Return the response directly
+        return response;
     } catch (error) {
-        console.error("Error in getUserDailyExpense API call:", error.response || error.message);
-
+        console.error("Error in getGroupDailyExp API call:", error.response || error.message);
         if (error.response) {
-            // Log details for better debugging
             console.error("Status:", error.response.status);
             console.error("Data:", error.response.data);
             console.error("Headers:", error.response.headers);
         }
-        throw error; // Rethrow the error for the caller to handle
+        throw error;
     }
 };
 
@@ -591,10 +511,10 @@ export const getUserExpense = async (queryParams) => {
 
 
         })
-        return response; // Return the response's data property directly
+        return response;
     } catch (error) {
         console.error("Error in getUserExpense API call:", error);
-        throw error; // Rethrow the error for the caller to handle
+        throw error;
     }
 };
 
@@ -602,142 +522,122 @@ export const getUserExpense = async (queryParams) => {
 
 export const getUserMonthlyExp = async (queryParams) => {
     try {
-        // Use queryParams directly in the params
-        console.log("Sending API Request with params:1234", queryParams);
-        console.log(profile.accessToken);
         const response = await API.get('/api/expense/v1/userMonthlyExpense', {
             headers: {
                 'Authorization': `Bearer ${profile.accessToken}`
             },
-            params: queryParams, // Query parameters
+            params: queryParams,
         });
 
-        console.log("API Response:", response.data);
-        return response; // Return the response directly
+        return response;
     } catch (error) {
-        console.error("Error in getUserCategoryExp API call:", error.response || error.message);
+        console.error("Error in getUserMonthlyExp API call:", error.response || error.message);
 
         if (error.response) {
-            // Log details for better debugging
             console.error("Status:", error.response.status);
             console.error("Data:", error.response.data);
             console.error("Headers:", error.response.headers);
         }
-        throw error; // Rethrow the error for the caller to handle
+        throw error;
     }
 };
 
 export const getUserDailyExp = async (queryParams) => {
     try {
-        // Use queryParams directly in the params
-        console.log("Sending API Request with params:", queryParams);
-        console.log(profile.accessToken);
         const response = await API.get('/api/expense/v1/userDailyExpense', {
             headers: {
                 'Authorization': `Bearer ${profile.accessToken}`
             },
-            params: queryParams, // Query parameters
+            params: queryParams,
         });
 
-        console.log("API Response:", response.data);
-        return response; // Return the response directly
+
+        return response;
     } catch (error) {
-        console.error("Error in getUserDailyExpense API call:", error.response || error.message);
+        console.error("Error in getUserDailyExp API call:", error.response || error.message);
 
         if (error.response) {
-            // Log details for better debugging
             console.error("Status:", error.response.status);
             console.error("Data:", error.response.data);
             console.error("Headers:", error.response.headers);
         }
-        throw error; // Rethrow the error for the caller to handle
+        throw error;
     }
 };
 
 export const getUserCategoryExp = async (queryParams) => {
     try {
-        // Use queryParams directly in the params
-        console.log("Sending API Request with params:1234", queryParams);
-        console.log(profile.accessToken);
+
         const response = await API.get('/api/expense/v1/userCategoryExpense', {
             headers: {
                 'Authorization': `Bearer ${profile.accessToken}`
             },
-            params: queryParams, // Query parameters
+            params: queryParams,
         });
 
-        console.log("API Response:", response.data);
-        return response; // Return the response directly
+        return response;
     } catch (error) {
         console.error("Error in getUserCategoryExp API call:", error.response || error.message);
 
         if (error.response) {
-            // Log details for better debugging
+
             console.error("Status:", error.response.status);
             console.error("Data:", error.response.data);
             console.error("Headers:", error.response.headers);
         }
-        throw error; // Rethrow the error for the caller to handle
+        throw error;
     }
 };
 
 
-
-
-
-
-//http://localhost:3001/api/expense/v1/recentuserexpense
 export const getRecentUserExp = async (queryParams) => {
     try {
-        // Use queryParams directly in the params
-        console.log("Sending API Request with params:", queryParams);
-        console.log(profile.accessToken);
+
+
         const response = await API.get('/api/expense/v1/recentuserexpense', {
             headers: {
-                'Authorization': `Bearer ${profile.accessToken}` // Ensure token is directly set
+                'Authorization': `Bearer ${profile.accessToken}`
             },
-            params: queryParams, // Query parameters
+            params: queryParams,
         });
 
-        console.log("API Response:", response.data);
-        return response; // Return the response directly
+
+        return response;
     } catch (error) {
         console.error("Error in getRecentUserExp API call:", error.response || error.message);
 
         if (error.response) {
-            // Log details for better debugging
             console.error("Status:", error.response.status);
             console.error("Data:", error.response.data);
             console.error("Headers:", error.response.headers);
         }
-        throw error; // Rethrow the error for the caller to handle
+        throw error;
     }
 };
 
 export const getExpDetails = async (queryParams) => {
     try {
-        // Use queryParams directly in the params
         console.log("Sending API Request with params:", queryParams);
         console.log(profile.accessToken);
         const response = await API.get('/api/expense/v1/viewexpense', {
             headers: {
-                'Authorization': `Bearer ${profile.accessToken}` // Ensure token is directly set
+                'Authorization': `Bearer ${profile.accessToken}`
             },
-            params: queryParams, // Query parameters
+            params: queryParams,
         });
 
         console.log("API Response:", response.data);
-        return response; // Return the response directly
+        return response;
     } catch (error) {
-        console.error("Error in getRecentUserExp API call:", error.response || error.message);
+        console.error("Error in getExpDetails API call:", error.response || error.message);
 
         if (error.response) {
-            // Log details for better debugging
+
             console.error("Status:", error.response.status);
             console.error("Data:", error.response.data);
             console.error("Headers:", error.response.headers);
         }
-        throw error; // Rethrow the error for the caller to handle
+        throw error;
     }
 };
 

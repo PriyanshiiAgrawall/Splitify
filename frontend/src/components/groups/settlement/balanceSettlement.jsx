@@ -76,7 +76,7 @@ const BalanceSettlement = ({ currencyType, settleTo, settleFrom, amount, handleC
       const payload = {
         ...data, groupId: params.groupId
       }
-      console.log(payload)
+
       const response = await settlementService(payload, setAlert, setAlertMessage);
       if (response?.data?.status === 'Success') {
         setSettleSuccess(true);

@@ -22,7 +22,7 @@ export default function LoginForm() {
     } = useForm();
 
     async function onSubmit(data) {
-        console.log("Submitting the form", data)
+
         //call to login service 
         await login(data, setAlertMessage, setShowAlert);
     }

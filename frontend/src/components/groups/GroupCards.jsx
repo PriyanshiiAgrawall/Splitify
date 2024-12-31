@@ -52,7 +52,6 @@ GroupCards.propTypes = {
 };
 
 export default function GroupCards({ groupId, title, description, groupMembers, share, currencyType, groupCategory, isGroupActive, icon, color = 'primary', sx, ...other }) {
-    console.log("66666", groupId)
     const [showAlert, setShowAlert] = useState(false);
     const [alertMessage, setAlertMessage] = useState("")
     const [deleteConfirm, setDeleteConfirm] = useState(false);
@@ -84,7 +83,7 @@ export default function GroupCards({ groupId, title, description, groupMembers, 
             }}
             {...other}
             onClick={(e) => {
-                console.log("Card clicked");
+
                 e.stopPropagation();
             }}
         >

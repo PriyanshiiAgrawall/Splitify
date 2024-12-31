@@ -20,7 +20,7 @@ export default function Group() {
             setLoading(true);
             try {
                 const responseGroup = await getUserGroupsService(profile); // Sending the entire profile
-                console.log("Response:", responseGroup);
+
                 setGroups(responseGroup?.data?.groups || []);
             } catch (error) {
                 console.error("Failed to fetch user groups:", error);
