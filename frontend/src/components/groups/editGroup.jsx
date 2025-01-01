@@ -21,7 +21,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import useResponsive from '../theme/hooks/useResponsive';
 import { getEmailList } from '../../services/authentication';
 import { getGroupDetailsService, editGroupService } from '../../services/groupService';
-import Loading from '../loading';
+import Loading from '../Loading.jsx';
 import AlertBanner from '../AlertBanner';
 import { useNavigate, useParams } from 'react-router-dom';
 import configData from '../../config.json';

@@ -25,7 +25,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import useResponsive from '../theme/hooks/useResponsive';
 import { addExpenseService } from '../../services/expenseServices';
 import { getGroupDetailsService } from '../../services/groupService';
-import Loading from '../loading';
+import Loading from '../Loading.jsx';
 import AlertBanner from '../AlertBanner';
 import configData from '../../config.json';
 import { currencyFind } from '../../utils/helper';

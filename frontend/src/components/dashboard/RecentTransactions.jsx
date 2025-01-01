@@ -1,9 +1,9 @@
 import { Box, Typography } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { getRecentUserExpService } from '../../services/expenseServices';
-import AlertBanner from '../AlertBanner';
-import ExpenseCard from '../expense/expenseCard';
-import Loading from '../loading';
+import AlertBanner from '../AlertBanner.jsx';
+import ExpenseCard from '../expense/ExpenseCard.jsx';
+import Loading from '../Loading.jsx';
 
 export const RecentTransactions = () => {
     const [loading, setLoading] = useState(true)

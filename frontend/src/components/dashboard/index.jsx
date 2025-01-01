@@ -13,7 +13,6 @@ import { SummaryCards } from "./summaryCards"
 import { WelcomeMessage } from "./WelcomeMessage"
 import { Link as RouterLink } from 'react-router-dom';
 import configData from '../../config.json'
-import AlertBanner from "../AlertBanner"
 
 
 export default function Dashboard() {

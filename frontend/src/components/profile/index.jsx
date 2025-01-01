@@ -8,7 +8,7 @@ import { deleteUser, getUser } from '../../services/authentication';
 import ChangePassword from './changePassword';
 import EditForm from './editUser';
 import AlertBanner from '../AlertBanner';
-import Loading from '../loading';
+import Loading from '../Loading.jsx';
 
 const profile = JSON.parse(localStorage.getItem('profile'));
 

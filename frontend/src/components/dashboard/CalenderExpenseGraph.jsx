@@ -2,7 +2,7 @@ import { Box, FormControlLabel, FormGroup, Grid, Switch, Typography } from "@mui
 import { Line } from "react-chartjs-2";
 import 'chart.js/auto'
 import { useEffect, useState } from "react";
-import Loading from "../loading";
+import Loading from "../Loading.jsx";
 import { getUserDailyExpService, getUserMonthlyExpService } from "../../services/expenseServices";
 import { monthNamesMMM } from "../../utils/helper";
 import useResponsive from "../theme/hooks/useResponsive";
