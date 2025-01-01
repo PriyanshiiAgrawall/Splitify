@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { getExpDetailsService } from "../../services/expenseServices";
 import useResponsive from '../theme/hooks/useResponsive';
 import { convertToCurrency, currencyFind } from '../../utils/helper';
-import Loading from "../loading";
+import Loading from "../Loading.jsx";
 import AlertBanner from '../AlertBanner';
 import { Link as RouterLink } from 'react-router-dom';
 import dataConfig from '../../config.json';

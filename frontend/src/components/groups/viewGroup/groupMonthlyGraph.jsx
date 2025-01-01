@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { getGroupDailyExpService, getGroupMonthlyExpService } from '../../../services/expenseServices';
 import AlertBanner from '../../AlertBanner';
-import Loading from '../../loading';
+import Loading from '../../Loading.jsx';
 import { Line } from "react-chartjs-2";
 import 'chart.js/auto'
 import { monthNamesMMM } from '../../../utils/helper';

@@ -2,7 +2,7 @@ import { Grid, CardActionArea, CardContent, CardMedia, Typography, Container, Ca
 import { useEffect, useState } from "react";
 import { getUserGroupsService } from "../../services/groupService";
 import Iconify from "../Iconify";
-import Loading from "../loading";
+import Loading from "../Loading.jsx";
 import GroupCards from "./GroupCards";
 import { Link as RouterLink } from 'react-router-dom';
 import dataConfig from '../../config.json';

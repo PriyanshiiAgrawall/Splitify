@@ -6,7 +6,7 @@ import { getGroupSettleService } from '../../../services/groupService';
 import useResponsive from '../../theme/hooks/useResponsive';
 import AlertBanner from '../../AlertBanner';
 import Iconify from '../../Iconify';
-import Loading from '../../loading';
+import Loading from '../../Loading.jsx';
 import SettlementCard from './settlementCard';
 import UserBalanceChart from './userBalanceChart';
 

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { getGroupCategoryExpService } from '../../../services/expenseServices';
 import AlertBanner from '../../AlertBanner';
-import Loading from '../../loading';
+import Loading from '../../Loading.jsx';
 import { Doughnut } from "react-chartjs-2";
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import 'chart.js/auto'

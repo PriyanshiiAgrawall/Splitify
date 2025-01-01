@@ -27,7 +27,7 @@ import { editExpenseService, getExpDetailsService } from '../../services/expense
 import { useParams, useNavigate } from 'react-router-dom';
 import { getGroupDetailsService } from '../../services/groupService';
 import AlertBanner from '../AlertBanner';
-import Loading from '../loading';
+import Loading from '../Loading.jsx';
 
 const schema = z.object({
     expenseName: z.string().optional(),

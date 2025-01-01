@@ -19,7 +19,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import useResponsive from '../../theme/hooks/useResponsive';
 import { getEmailList } from '../../../api';
-import Loading from '../../loading';
+import Loading from '../../Loading.jsx';
 import { createGroupService } from '../../../services/groupService';
 import AlertBanner from '../../AlertBanner';
 import configData from '../../../config.json';

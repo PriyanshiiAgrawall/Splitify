@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { getGroupDetailsService } from "../../../services/groupService";
 import AlertBanner from "../../AlertBanner";
-import Loading from "../../loading";
+import Loading from "../../Loading.jsx";
 import 'chart.js/auto';
 import { Bar } from "react-chartjs-2";
 import useResponsive from "../../theme/hooks/useResponsive";

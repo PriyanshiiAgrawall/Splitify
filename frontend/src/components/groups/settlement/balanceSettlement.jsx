@@ -14,7 +14,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import useResponsive from '../../theme/hooks/useResponsive';
-import Loading from '../../loading';
+import Loading from '../../Loading.jsx';
 import Iconify from '../../Iconify';
 import AlertBanner from '../../AlertBanner';
 import { currencyFind } from '../../../utils/helper';
