@@ -35,7 +35,7 @@ app.use(
     })
 );
 
-const Port = process.env.PORT;
+const Port = process.env.PORT || 3001;
 //app.listen() is asynchronous 
 const server = () => {
     dbConnect();
