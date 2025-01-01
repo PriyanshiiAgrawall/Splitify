@@ -107,7 +107,7 @@ const About = () => {
         <code>
           cd frontend <br />
           npm install <br />
-          npm run start <br />
+          npm run dev <br />
           <br />
           cd backend <br />
           npm install <br />
