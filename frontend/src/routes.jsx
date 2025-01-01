@@ -8,7 +8,7 @@ import Dashboard from './components/dashboard';
 import Group from './components/groups';
 import CreateGroup from './components/groups/createGroup';
 import ViewGroup from './components/groups/viewGroup';
-import EditGroup from "./components/groups/EditGroup.jsx"
+import EditGroup from "./components/groups/editGroup.jsx"
 import AddExpense from './components/expense/AddExpense.jsx';
 import { ViewExpense } from './components/expense/ViewExpense.jsx';
 import EditExpense from './components/expense/EditExpense.jsx';
