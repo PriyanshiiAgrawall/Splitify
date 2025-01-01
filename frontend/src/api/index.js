@@ -5,7 +5,7 @@ import axios from 'axios'
 
 //creating base url , instanciating axios
 const API = axios.create({
-    baseURL: 'http://localhost:3001',
+    baseURL: 'https://splitify-backend-l3xc.onrender.com',
     withCredentials: true,
 });
 

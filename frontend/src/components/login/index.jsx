@@ -10,6 +10,7 @@ import LoginForm from './LoginForm';
 import Copyright from '../Copyright';
 import splitify from "../../assets/splitify.png"
 import configData from '../../config.json'
+import TakeATour from '../register/TakeATour';
 
 const RootStyle = styled('div')(({
     theme
@@ -108,7 +109,7 @@ export default function Login() {
 
 
                         <LoginForm />
-
+                        <TakeATour />
                         {!smUp && (
                             <Typography variant="body2" align="center" sx={{ mt: 3 }}>
                                 Don’t have an account?{' '}

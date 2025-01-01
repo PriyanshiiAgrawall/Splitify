@@ -16,7 +16,7 @@ export const login = async (formData, setAlertMessage, setShowAlert) => {
         console.log("Profile to save in localStorage:", profile);
         //backend sends user obj and token and we save it in local storage
         localStorage.setItem("profile", JSON.stringify(profile))
-        // window.location.href = configData.DASHBOARD_URL
+        window.location.href = configData.DASHBOARD_URL
         return data
     } catch (err) {
         setShowAlert(true)
@@ -44,7 +44,8 @@ export const register = async (formData, setShowAlert, setAlertMessage) => {
     try {
         //registering user to the DB
         const { data } = await api.register(formData)
-        login(formData, setShowAlert, setAlertMessage)
+        await login(formData, setShowAlert, setAlertMessage)
+        window.location.href = configData.DASHBOARD_URL
         return data
     } catch (err) {
         setShowAlert(true)

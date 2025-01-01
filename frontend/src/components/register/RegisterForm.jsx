@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Stack, TextField, IconButton, InputAdornment, Snackbar, Alert } from '@mui/material';
+import { Stack, TextField, Box, IconButton, InputAdornment, Snackbar, Alert } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import Iconify from '../Iconify';
 import useResponsive from "../theme/hooks/useResponsive"
 import { register as registerService } from '../../services/authentication';
+import TakeATour from './TakeATour';
 
 export default function RegisterForm() {
     const smUp = useResponsive('up', 'sm');
@@ -112,6 +113,11 @@ export default function RegisterForm() {
                     <LoadingButton fullWidth size="large" type="submit" variant="contained" loading={isSubmitting}>
                         Register
                     </LoadingButton>
+
+
+
+
+
                 </Stack>
             </form>
         </>

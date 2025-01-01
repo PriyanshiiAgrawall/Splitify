@@ -18,6 +18,7 @@ import { GroupSettlementsCall } from './components/groups/settlement/index.jsx';
 import Profile from './components/profile/index.jsx';
 import About from './components/about.jsx';
 import PageUserDeleted from './components/profile/PageUserDeleted.jsx';
+import Page404 from './components/Page404.jsx';
 
 
 
@@ -79,6 +80,6 @@ export default function Router() {
                 { path: configData.ABOUT_URL, element: <About /> }
             ]
         },
-        { path: '*', element: <div>404 - Page Not Found</div> },
+        { path: '*', element: <Page404 /> },
     ])
 }

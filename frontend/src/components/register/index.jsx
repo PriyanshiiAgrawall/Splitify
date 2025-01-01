@@ -1,17 +1,16 @@
 import { Link as RouterLink } from 'react-router-dom';
 
-// @mui
 import { styled } from '@mui/material/styles';
 import { Card, Link, Container, Typography, Stack, Box } from '@mui/material';
 
 import splitify from "../../assets/splitify.png"
 
-// hooks
 import useResponsive from "../theme/hooks/useResponsive"
 
 
 import RegisterForm from "./RegisterForm"
 import Copyright from '../Copyright';
+import TakeATour from './TakeATour';
 
 const RootStyle = styled('div')(({
     theme
@@ -91,7 +90,7 @@ export default function Register() {
                     <Typography sx={{ color: 'text.secondary', mb: 5 }}>Simplify group expenses and settle up instantly!</Typography>
 
                     <RegisterForm />
-                    {/* <AuthSocial />*/}
+                    <TakeATour />
 
                     {!smUp && (
                         <Typography variant="body2" align="center" sx={{ mt: 3 }}>
